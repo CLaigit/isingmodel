@@ -3,86 +3,70 @@
 #include <math.h>
 #include <time.h>       /* time */
 
-#define  C_a 1.0
-#define  MASS 1.0
-#define  OMEGA 0.15
-#define  EPSILON C_a
-#define  NTIMESTEPS 1000
-#define  WARMSTEPS 100000
-#define  POSSWEEPS 1000000
-#define  POSMEASURE 100
-#define  DELTA 3
-#define  ROW (NTIMESTEPS + 2)
-#define  COLUMN (POSSWEEPS/POSMEASURE)
-#define  NOUT (1.0 * POSSWEEPS/POSMEASURE)
-#define  MIU2 2
-#define  LAMBDA 1.0
+#define  LATTICE_LENGTH 20
+#define  COLUMN LATTICE_LENGTH
+#define  ROW LATTICE_LENGTH
+#define  BOLTZMANN_CONST 1
+#define  WARMSTEPS 1e3
+#define  MEASURESTEPS 1e6
+#define  NOUT 1e2
+#define  NSWEEPS (MEASURESTEPS/NOUT)
 
-double kinetic(double x1, double x2){
-    return 0.5 * MASS * (x1 - x2) * (x1 - x2) / EPSILON / EPSILON;
-}
-
-double potential(double x1, double x2){
-    double meanx = 0.5 * (x1 + x2);
-    return 0.5 * MASS * OMEGA * OMEGA * meanx * meanx;
-}
-
-double totalenergy(double x1, double x2){
-    return kinetic(x1, x2) + potential(x1, x2);
+int energy(int up, int down, int left, int right, int center){
+    double H;
+    H = -up * center;
+    H -= down * center;
+    H -= left * center;
+    H -= right * center;
+    return H;
 }
 
 int main (int argc, char *argv[]){
 
-    static double pos[COLUMN][ROW] = {};
-    double shift;
-    double deltas;
-    double tmppos[ROW] = {};
-    static double energy[COLUMN] = {};
-    static double exppectPos[COLUMN] = {};
-    int warm_memory;
-    double updatex;
-
+    static int lattice[COLUMN][ROW] = {};
+    double T = 2.5;
+    int new;
+    double beta = 1.0 / BOLTZMANN_CONST / T;
+    double deltaE;
     srand (time(NULL));
-    // Start from to calculate the second column
-    for (int i = 1; i < NOUT; i++){
-        // Copy the position to an tempory position array
+    // Initialize every grid point
+    for (int i = 0; i < COLUMN; i++){
         for(int j = 0; j < ROW; j++){
-            tmppos[j] = pos[i-1][j];
-        }
-        // Check if it is the warmup process or the regular process
-        warm_memory = ((i == 1)? WARMSTEPS: POSMEASURE);
-        // Run warmup steps or regular steps
-        for (int k = 0; k < warm_memory; k++){
-            //The first element stores the last position
-            // The last element stores the first position
-            tmppos[0] = tmppos[ROW-2];
-            tmppos[ROW-1] = tmppos[1];
-            // Update every point in a path
-            for(int t = 1; t <= NTIMESTEPS; t++){
-                updatex = tmppos[t] + 2.0 * DELTA * ((double)rand() / (double)RAND_MAX - 0.5);
-                deltas = EPSILON * totalenergy(tmppos[t+1], updatex);
-                deltas += EPSILON * totalenergy(updatex, tmppos[t-1]);
-                deltas -= EPSILON * totalenergy(tmppos[t+1], tmppos[t]);
-                deltas -= EPSILON * totalenergy(tmppos[t], tmppos[t-1]);
-
-                if (deltas < 0 || (double)rand() / (double)RAND_MAX <= exp(-deltas)){
-                    tmppos[t] = updatex;
-                }
-            }
-            //Update the boundary condition
-            tmppos[0] = tmppos[ROW-2];
-            tmppos[ROW-1] = tmppos[1];
-        }
-        // Copy the tempory array to the position matrix
-        for(int j = 0; j < ROW; j++){
-            pos[i][j] = tmppos[j];
+            lattice[i][j] = 2 * (rand() % 2) - 1;
         }
     }
-    // Output data
-    for(int i = 1; i < COLUMN; i++){
-        for(int j = 1; j < ROW-2; j++){
-            printf("%f,", pos[i][j]);
+    for (int inter = 0; inter < WARMSTEPS; inter++){
+        for(int i = 0; i < COLUMN; i++){
+            for(int j = 0; j < ROW; j++){
+                new = -lattice[i][j];
+                deltaE = energy(lattice[ (i - 1 + ROW) % ROW][j], lattice[(i + 1 + ROW) % ROW][j], lattice[i][(j - 1 + ROW) % ROW], lattice[i][(j + 1 + ROW) % ROW], new);
+                deltaE -= energy(lattice[ (i - 1 + ROW) % ROW][j], lattice[(i + 1 + ROW) % ROW][j], lattice[i][(j - 1 + ROW) % ROW], lattice[i][(j + 1 + ROW) % ROW], lattice[i][j]);
+                if ((double)rand() / (double)RAND_MAX <= exp(- beta * deltaE)){
+                    lattice[i][j] = new;
+                }
+            }
         }
-        printf("%f\n", pos[i][ROW-2]);
+    }
+
+
+    for (int inter = 0; inter < NSWEEPS; inter++){
+        for(int k = 0; k < NOUT; k++){
+            for(int i = 0; i < COLUMN; i++){
+                for(int j = 0; j < ROW; j++){
+                    new = -lattice[i][j];
+                    deltaE = energy(lattice[ (i - 1 + ROW) % ROW][j], lattice[(i + 1 + ROW) % ROW][j], lattice[i][(j - 1 + ROW) % ROW], lattice[i][(j + 1 + ROW) % ROW], new);
+                    deltaE -= energy(lattice[ (i - 1 + ROW) % ROW][j], lattice[(i + 1 + ROW) % ROW][j], lattice[i][(j - 1 + ROW) % ROW], lattice[i][(j + 1 + ROW) % ROW], lattice[i][j]);
+                    if (deltaE < 0 || (double)rand() / (double)RAND_MAX <= exp(- beta * deltaE)){
+                        lattice[i][j] = new;
+                    }
+                }
+            }
+        }
+        for(int i = 0; i < COLUMN; i++){
+            for(int j = 0; j < COLUMN-1; j++){
+                printf("%d,", lattice[i][j]);
+            }
+            printf("%d\n", lattice[i][COLUMN-1]);
+        }
     }
 }
