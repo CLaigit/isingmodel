@@ -1,3 +1,8 @@
+/*
+Ising model: Halmitonian H = /sum_ij J(sigma_i)(sigma_j)
+We set J = 1 first
+
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -12,6 +17,7 @@
 #define  NOUT 1e2
 #define  NSWEEPS (MEASURESTEPS/NOUT)
 
+// Calculate the energy of the (up, center) (down, center) (left, center) ( right, center)
 int energy(int up, int down, int left, int right, int center){
     double H;
     H = -up * center;
@@ -25,6 +31,7 @@ int main (int argc, char *argv[]){
 
     static int lattice[COLUMN][ROW] = {};
     double T = 2.5;
+    // Tempurature
     int new;
     double beta = 1.0 / BOLTZMANN_CONST / T;
     double deltaE;
@@ -35,9 +42,13 @@ int main (int argc, char *argv[]){
             lattice[i][j] = 2 * (rand() % 2) - 1;
         }
     }
+    // Warmup process
     for (int inter = 0; inter < WARMSTEPS; inter++){
         for(int i = 0; i < COLUMN; i++){
             for(int j = 0; j < ROW; j++){
+                // flip a spin
+                // If the energy becomes small, accept it
+                // Else accept w.r.t the probability e^-beta*deltaE
                 new = -lattice[i][j];
                 deltaE = energy(lattice[ (i - 1 + ROW) % ROW][j], lattice[(i + 1 + ROW) % ROW][j], lattice[i][(j - 1 + ROW) % ROW], lattice[i][(j + 1 + ROW) % ROW], new);
                 deltaE -= energy(lattice[ (i - 1 + ROW) % ROW][j], lattice[(i + 1 + ROW) % ROW][j], lattice[i][(j - 1 + ROW) % ROW], lattice[i][(j + 1 + ROW) % ROW], lattice[i][j]);
@@ -48,7 +59,7 @@ int main (int argc, char *argv[]){
         }
     }
 
-
+    // Measure steps
     for (int inter = 0; inter < NSWEEPS; inter++){
         for(int k = 0; k < NOUT; k++){
             for(int i = 0; i < COLUMN; i++){
@@ -62,6 +73,7 @@ int main (int argc, char *argv[]){
                 }
             }
         }
+        // Output data every NOUT
         for(int i = 0; i < COLUMN; i++){
             for(int j = 0; j < COLUMN-1; j++){
                 printf("%d,", lattice[i][j]);
