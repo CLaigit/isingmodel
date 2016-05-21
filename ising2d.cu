@@ -27,14 +27,14 @@ __global__ void update(int* lattice, const unsigned int offset, double beta){
     const unsigned int idx_r = (idx + 1 + N) % N;
     const unsigned int idy_u = (idy - 1 + N) % N;
     const unsigned int idy_d = (idy + 1 + N) % N;
+    int new, up, down, left, right, center;
+    double deltaE;
+    curandState_t state1;
+    curantState_t state2;
+    curand_init(idx, idx + 1, 0, &state1);
+    curand_init(idy, idy + 1, 0, &state2);
 
     if (idx < N && idy < N && idx_l < N && idx_r < N && idy_u < N && idy_d < N){
-        int new;
-        double deltaE;
-        curandState_t state1;
-        curantState_t state2;
-        curand_init(idx, idx + 1, 0, &state1);
-        curand_init(idy, idy + 1, 0, &state2);
 
         new = 2 * (curand(&state) % 2) - 1;
         pro_rand = curand_uniform(&state);
@@ -77,12 +77,14 @@ int main (int argc, char *argv[]){
     int *lattice;
     int *d_lattice;
     double T = 2;
+    int warmsteps = 1e5;
     int nout, mout;
+    nout = 100;
 
     int numthreadx = 32;
     int numthready = 4;
-    int numblockX = LATTICE_LENGTH / ntx;
-    int numblocksY = LATTICE_LENGTH / nty;
+    int numblockX = LATTICE_LENGTH / numthreadx;
+    int numblocksY = LATTICE_LENGTH / numthready;
 
     T = argc > 1 ? atof(argv[1]) : 2;
 
@@ -96,7 +98,7 @@ int main (int argc, char *argv[]){
 
     // Tempurature
     dim3 grid(numblocksX, numblocksY, 1);
-    dim3 threads(numthreadx, numthready,1);
+    dim3 thread(numthreadx, numthready,1);
 
     int new;
     double beta = 1.0 / BOLTZMANN_CONST / T;
@@ -107,17 +109,17 @@ int main (int argc, char *argv[]){
     cudaMemcpy(d_lattice, lattice, bytes, cudaMemcpyHostToDevice);
 
     // Warmup process
-    for (int iter = 0; iter < WARMSTEPS; iter++){
+    for (int iter = 0; iter < warmsteps; iter++){
         update<<<grid, thread>>>(d_lattice, 0, beta);
         update<<<grid, thread>>>(d_lattice, 1, beta);
     }
 
     // Measure steps
-    for (int nstep = 0; nstep < NOUT; nstep++){
-        update<<<grid, block>>>(d_lattice, 0, beta);
-        update<<<grid, block>>>(d_lattice, 1, beta);
+    for (int nstep = 0; nstep < nout; nstep++){
+        update<<<grid, thread>>>(d_lattice, 0, beta);
+        update<<<grid, thread>>>(d_lattice, 1, beta);
         cudaDeviceSynchronize();
-        printstate<<<grid, block>>>(d_lattice);
+        printstate<<<grid, thread>>>(d_lattice);
     }
 
     free(lattice);
