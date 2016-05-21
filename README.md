@@ -1,7 +1,7 @@
 # isingmodel
 
 1. Compile file: make ising 
-2. Output data: ./2dising.sh
+2. Output data: ./2dising.sh	(If it doesn't work, type in: chmod +x ./2dising.sh)
 3. Calculate energy: animation.m (TODO) 
 
 
