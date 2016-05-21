@@ -81,6 +81,7 @@ int main (int argc, char *argv[]){
     int warmsteps = 1e5;
     int nout;
     nout = 100;
+    int warp = 1000;
 
     int numthreadx = 32;
     int numthready = 4;
@@ -113,7 +114,8 @@ int main (int argc, char *argv[]){
         update<<<grid, thread>>>(d_lattice, 0, beta);
         update<<<grid, thread>>>(d_lattice, 1, beta);
         cudaDeviceSynchronize();
-        fprintf(stderr,"Warmup Iteration: %d\n", iter);
+        if(iter % warp == 0)
+            fprintf(stderr,"Warmup Iteration: %d\n", iter);
     }
 
     // Measure steps
@@ -122,7 +124,8 @@ int main (int argc, char *argv[]){
         update<<<grid, thread>>>(d_lattice, 1, beta);
         cudaDeviceSynchronize();
         printstate<<<grid, thread>>>(d_lattice);
-        fprintf(stderr,"Measure Iteration: %d\n", nstep);
+        if(nstep % warp == 0)
+            fprintf(stderr,"Measure Iteration: %d\n", nstep);
     }
 
     free(lattice);
