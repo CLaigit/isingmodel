@@ -113,7 +113,7 @@ int main (int argc, char *argv[]){
         update<<<grid, thread>>>(d_lattice, 0, beta);
         update<<<grid, thread>>>(d_lattice, 1, beta);
         cudaDeviceSynchronize();
-
+        fprintf(stderr,"Warmup Iteration: %d\n", iter);
     }
 
     // Measure steps
@@ -122,6 +122,7 @@ int main (int argc, char *argv[]){
         update<<<grid, thread>>>(d_lattice, 1, beta);
         cudaDeviceSynchronize();
         printstate<<<grid, thread>>>(d_lattice);
+        fprintf(stderr,"Measure Iteration: %d\n", nstep);
     }
 
     free(lattice);
