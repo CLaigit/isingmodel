@@ -12,7 +12,7 @@ We set J = 1 first
 #define  COLUMN LATTICE_LENGTH
 #define  ROW LATTICE_LENGTH
 #define  BOLTZMANN_CONST 1
-#define  WARMSTEPS 1e3
+#define  WARMSTEPS 1e6
 #define  MEASURESTEPS 1e6
 #define  NOUT 1e2
 #define  NSWEEPS (MEASURESTEPS/NOUT)
@@ -30,7 +30,9 @@ int energy(int up, int down, int left, int right, int center){
 int main (int argc, char *argv[]){
 
     static int lattice[COLUMN][ROW] = {};
-    double T = 2.5;
+    double T = 2;
+
+    T = argc > 1 ? atof(argv[1]) : 2;
     // Tempurature
     int new;
     double beta = 1.0 / BOLTZMANN_CONST / T;
@@ -61,7 +63,7 @@ int main (int argc, char *argv[]){
 
     // Measure steps
     for (int inter = 0; inter < NSWEEPS; inter++){
-        for(int k = 0; k < NOUT; k++){
+        // for(int k = 0; k < NOUT; k++){
             for(int i = 0; i < COLUMN; i++){
                 for(int j = 0; j < ROW; j++){
                     new = -lattice[i][j];
@@ -72,7 +74,7 @@ int main (int argc, char *argv[]){
                     }
                 }
             }
-        }
+        // }
         // Output data every NOUT
         for(int i = 0; i < COLUMN; i++){
             for(int j = 0; j < COLUMN-1; j++){
