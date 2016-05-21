@@ -112,6 +112,8 @@ int main (int argc, char *argv[]){
     for (int iter = 0; iter < warmsteps; iter++){
         update<<<grid, thread>>>(d_lattice, 0, beta);
         update<<<grid, thread>>>(d_lattice, 1, beta);
+        cudaDeviceSynchronize();
+
     }
 
     // Measure steps
