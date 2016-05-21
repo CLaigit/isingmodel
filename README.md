@@ -2,7 +2,7 @@
 
 1. Compile file: make ising 
 2. Output data: ./2dising.sh
-3. Generate figure: animation.m 
+3. Calculate energy: animation.m (TODO) 
 
 
 How to access Titan box:
