@@ -27,17 +27,18 @@ __global__ void update(int* lattice, const unsigned int offset, double beta){
     const unsigned int idx_r = (idx + 1 + N) % N;
     const unsigned int idy_u = (idy - 1 + N) % N;
     const unsigned int idy_d = (idy + 1 + N) % N;
-    int new, up, down, left, right, center;
+    int flip, up, down, left, right, center;
+    double pro_rand;
     double deltaE;
     curandState_t state1;
-    curantState_t state2;
+    curandState_t state2;
     curand_init(idx, idx + 1, 0, &state1);
     curand_init(idy, idy + 1, 0, &state2);
 
     if (idx < N && idy < N && idx_l < N && idx_r < N && idy_u < N && idy_d < N){
 
-        new = 2 * (curand(&state) % 2) - 1;
-        pro_rand = curand_uniform(&state);
+        flip = 2 * (curand(&state1) % 2) - 1;
+        pro_rand = curand_uniform(&state2);
 
         up = lattice[idx * N + idy_u];
         down = lattice[idx * N + idy_d];
@@ -45,21 +46,21 @@ __global__ void update(int* lattice, const unsigned int offset, double beta){
         down = lattice[idx_r * N + idy];
         center = lattice[idx * N + idy];
 
-        deltaE = energy(up, down, left, right, new);
+        deltaE = energy(up, down, left, right, flip);
         deltaE -= energy(up, down, left, right, center);
 
         if (pro_rand <= exp(- beta * deltaE)){
-            lattice[idx * N + idy] = new;
+            lattice[idx * N + idy] = flip;
         }
     }
 }
 
 __global__ void printstate(int* lattice) {
-    const unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x + offset;
-    const unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y + offset;
+    const unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    const unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (idx < N && idy < N){
-        printf("%d, %d, %d", idx, idy, lattice[idx * N + idy])
+        printf("%d, %d, %d\n", idx, idy, lattice[idx * N + idy]);
     }
 }
 
@@ -78,12 +79,12 @@ int main (int argc, char *argv[]){
     int *d_lattice;
     double T = 2;
     int warmsteps = 1e5;
-    int nout, mout;
+    int nout;
     nout = 100;
 
     int numthreadx = 32;
     int numthready = 4;
-    int numblockX = LATTICE_LENGTH / numthreadx;
+    int numblocksX = LATTICE_LENGTH / numthreadx;
     int numblocksY = LATTICE_LENGTH / numthready;
 
     T = argc > 1 ? atof(argv[1]) : 2;
@@ -100,7 +101,6 @@ int main (int argc, char *argv[]){
     dim3 grid(numblocksX, numblocksY, 1);
     dim3 thread(numthreadx, numthready,1);
 
-    int new;
     double beta = 1.0 / BOLTZMANN_CONST / T;
     srand (time(NULL));
     // Initialize every grid point
