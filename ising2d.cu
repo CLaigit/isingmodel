@@ -43,7 +43,7 @@ __global__ void update(int* lattice, const unsigned int offset, double beta){
         up = lattice[idx * N + idy_u];
         down = lattice[idx * N + idy_d];
         left = lattice[idx_l * N + idy];
-        down = lattice[idx_r * N + idy];
+        right = lattice[idx_r * N + idy];
         center = lattice[idx * N + idy];
 
         deltaE = energy(up, down, left, right, flip);
