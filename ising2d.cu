@@ -80,7 +80,7 @@ int main (int argc, char *argv[]){
     double T = 2;
     int warmsteps = 1;
     int nout;
-    nout = 100;
+    nout = 2;
     int warp = 1000;
 
     int numthreadx = 16;
@@ -108,6 +108,7 @@ int main (int argc, char *argv[]){
 
     cudaMalloc((void **)&d_lattice, bytes);
     cudaMemcpy(d_lattice, lattice, bytes, cudaMemcpyHostToDevice);
+    cudaDeviceSetLimit(cudaLimitPrintfFifoSize, 256 * 256 * sizeof(int) * 256);
 
     // Warmup process
     for (int iter = 0; iter < warmsteps; iter++){
