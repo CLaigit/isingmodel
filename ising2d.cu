@@ -19,7 +19,8 @@ Ising model: Halmitonian H = /sum_ij J(sigma_i)(sigma_j)
 *       Iteattion N:    35          76               1
 *                       *           *                *
 *                       *           *                *
-*
+*   5. Compare the numerical value with the analytic value
+*   6. Move to 3D
 */
 
 #include <stdio.h>
