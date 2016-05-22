@@ -60,7 +60,7 @@ __global__ void printstate(int* lattice) {
     const unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (idx < N && idy < N){
-        printf("%d, %d, %d\n", idx, idy * N, lattice[idx + idy * N]);
+        printf("%d, %d, %d\n", idx, idy, lattice[idx + idy * N]);
     }
 }
 
@@ -78,7 +78,7 @@ int main (int argc, char *argv[]){
     int *lattice;
     int *d_lattice;
     double T = 2;
-    int warmsteps = 1e5;
+    int warmsteps = 1;
     int nout;
     nout = 100;
     int warp = 1000;
