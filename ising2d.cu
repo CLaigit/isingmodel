@@ -21,7 +21,7 @@ __global__ void update(int *lattice, unsigned int offset);
 __global__ void printstate(int *lattice);
 
 __global__ void update(int* lattice, const unsigned int offset, double beta){
-    const unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x + offset;
+    const unsigned int idx = blockIdx.x * blockDim.y + threadIdx.x + offset;
     const unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y + offset;
     const unsigned int idx_l = (idx - 1 + N) % N;
     const unsigned int idx_r = (idx + 1 + N) % N;
@@ -40,17 +40,17 @@ __global__ void update(int* lattice, const unsigned int offset, double beta){
         flip = 2 * (curand(&state1) % 2) - 1;
         pro_rand = curand_uniform(&state2);
 
-        up = lattice[idx * N + idy_u];
-        down = lattice[idx * N + idy_d];
-        left = lattice[idx_l * N + idy];
-        right = lattice[idx_r * N + idy];
-        center = lattice[idx * N + idy];
+        up = lattice[idx + idy_u * N];
+        down = lattice[idx + idy_d * N];
+        left = lattice[idx_l + idy * N];
+        right = lattice[idx_r + idy * N];
+        center = lattice[idx + idy * N];
 
         deltaE = energy(up, down, left, right, flip);
         deltaE -= energy(up, down, left, right, center);
 
         if (pro_rand <= exp(- beta * deltaE)){
-            lattice[idx * N + idy] = flip;
+            lattice[idx + idy * N ] = flip;
         }
     }
 }
@@ -60,7 +60,7 @@ __global__ void printstate(int* lattice) {
     const unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (idx < N && idy < N){
-        printf("%d, %d, %d\n", idx, idy, lattice[idx * N + idy]);
+        printf("%d, %d, %d\n", idx, idy * N, lattice[idx + idy * N]);
     }
 }
 
@@ -83,8 +83,8 @@ int main (int argc, char *argv[]){
     nout = 100;
     int warp = 1000;
 
-    int numthreadx = 32;
-    int numthready = 4;
+    int numthreadx = 16;
+    int numthready = 16;
     int numblocksX = LATTICE_LENGTH / numthreadx;
     int numblocksY = LATTICE_LENGTH / numthready;
 
@@ -94,8 +94,8 @@ int main (int argc, char *argv[]){
     lattice = (int*)malloc(LATTICE_2 * sizeof(int));
 
     for(int i = 0; i < LATTICE_2; i++){
-            // lattice[i] = 2 * (rand() % 2) - 1;
-            lattice[i] = 1;
+            lattice[i] = 2 * (rand() % 2) - 1;
+            //lattice[i] = 1;
     }
 
     // Tempurature
