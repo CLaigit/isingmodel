@@ -13,8 +13,8 @@ default: clean ising
 all: clean ising
 
 ising:	${OBJS}
-	${COMPILER1}	${CFLAG}	$(LIB)	${OBJS1}	-O3	-o	ising
+	${COMPILER1}	${CFLAG}	$(LIB)	${OBJS1}	-O3	-o	ising.o
 cuda:	${OBJS}
-	${COMPILER2}	${CFLAG2}	${CFLAG}	$(LIB)	${OBJS2}	-O3	-o	ising2d
+	${COMPILER2}	${CFLAG2}	${CFLAG}	$(LIB)	${OBJS2}	-O3	-o	ising2d.o
 clean:
-	-rm	-f	*.o	ising
+	-rm	-f	*.o
