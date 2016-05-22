@@ -6,5 +6,5 @@
 
 
 How to access Titan box:
-ssh username@ieng6.ucsd.edu\newline
+ssh username@ieng6.ucsd.edu newline
 2. ssh username@igpu6-210.ucsd.edu
