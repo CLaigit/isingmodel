@@ -1,9 +1,9 @@
 # isingmodel
 
 How to run the program <br />
-1. Compile file: make ising
-2. Output data: ./2dising.sh	(If it doesn't work, type in: chmod +x ./2dising.sh)
-3. Calculate energy: animation.m (TODO)
+Compile file: make ising <br />
+Output data: ./2dising.sh	(If it doesn't work, type in: chmod +x ./2dising.sh) <br />
+Calculate energy: animation.m (TODO)<br />
 
 
 How to access Titan box: <br />
