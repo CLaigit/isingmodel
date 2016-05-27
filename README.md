@@ -1,14 +1,20 @@
 # isingmodel
 
-How to run the program
-  - Compile file: make ising.
+To output all matrix:
+  - Compile file: make picture=1
   - Output data: ./2dising.sh	(If it doesn't work, type in: chmod +x ./2dising.sh).
-  - Calculate energy: animation.m (TODO).
+
+To output energy, heat capacity, magnetization, magnetization susceptibility:
+  - Compile file: make
+  - Output data: ./2dising.sh
+
+All data file will be in ./data
+
 
 
 How to access Titan box:
-ssh username@ieng6.ucsd.edu
-ssh username@igpu6-210.ucsd.edu
+###ssh username@ieng6.ucsd.edu
+###ssh username@igpu6-210.ucsd.edu
 
 How to run the cuda code:
 make cuda
