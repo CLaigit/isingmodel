@@ -38,16 +38,16 @@ $ ssh username@igpu6-210.ucsd.edu
 ```
 
 How to run the cuda code:
-    - Compile file:
-    ```
-    $ make picture=1
-    ```
-    - Output data:
-    ```
-    $ ./2dising.sh
-    ```
-    (If it doesn't work, type in:
-    ```
-    $ chmod +x ./2dising.sh
-    ```
-    ).
+  - Compile file:
+  ```
+  $ make picture=1
+  ```
+  - Output data:
+  ```
+  $ ./2dising.sh
+  ```
+  (If it doesn't work, type in:
+  ```
+  $ chmod +x ./2dising.sh
+  ```
+  ).
