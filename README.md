@@ -2,7 +2,7 @@
 
 To output all matrix:
   - Compile file:
-  ```sh
+  ```
   $ make picture=1
   ```
   - Output data:
