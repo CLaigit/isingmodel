@@ -1,10 +1,10 @@
 # isingmodel
 
-How to run the program
-    - Compile file: make ising
-    - Output data: ./2dising.sh	(If it doesn't work, type in: chmod +x ./2dising.sh)
-    - Calculate energy: animation.m (TODO)
-
+Execute 'make' to obtain the executable file 'andromeda'
+  - make with parameters:
+    - bls:    block size in CUDA code (default 256)
+    - score:  initial conditions using host functions (default using device)
+              This parameter can be set to any value
 
 How to access Titan box:
 ssh username@ieng6.ucsd.edu
