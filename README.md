@@ -2,14 +2,18 @@
 
 To output all matrix:
   - Compile file:
-      ```
-      $ make picture=1
-      ```
+  ```
+  $ make picture=1
+  ```
   - Output data:
-  ```sh
+  ```
   $ ./2dising.sh
   ```
-  (If it doesn't work, type in: chmod +x ./2dising.sh).
+  (If it doesn't work, type in:
+  ```
+  $ chmod +x ./2dising.sh
+  ```
+  ).
 
 To output energy, heat capacity, magnetization, magnetization susceptibility:
   - Compile file: make
