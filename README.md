@@ -2,9 +2,9 @@
 
 To output all matrix:
   - Compile file:
-  ```
-  $ make picture=1
-  ```
+      ```
+      $ make picture=1
+      ```
   - Output data:
   ```sh
   $ ./2dising.sh
