@@ -16,14 +16,21 @@ To output all matrix:
   ).
 
 To output energy, heat capacity, magnetization, magnetization susceptibility:
-  - Compile file: make
-  - Output data: ./2dising.sh
+  - Compile file:
+  ```
+  $ make
+  ```
+  - Output data:
+  ```
+  $ ./2dising.sh
+  ```
 
 All data file will be in ./data
 
 To clean all data:
-  - make cleandata
-
+```sh
+$ make cleandata
+```
 How to access Titan box:
 ```sh
 $ ssh username@ieng6.ucsd.edu
