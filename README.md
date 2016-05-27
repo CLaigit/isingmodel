@@ -10,11 +10,14 @@ To output energy, heat capacity, magnetization, magnetization susceptibility:
 
 All data file will be in ./data
 
-
+To clean all data:
+  - make cleandata
 
 How to access Titan box:
-###ssh username@ieng6.ucsd.edu
-###ssh username@igpu6-210.ucsd.edu
+```sh
+$ ssh username@ieng6.ucsd.edu
+$ ssh username@igpu6-210.ucsd.edu
+```
 
 How to run the cuda code:
 make cuda
