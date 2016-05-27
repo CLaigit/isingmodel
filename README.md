@@ -48,6 +48,6 @@ How to run the cuda code:
   ```
   (If it doesn't work, type in:
   ```
-  $ chmod +x ./2dising.sh
+  $ chmod +x ./2dising_cuda.sh
   ```
   ).
