@@ -33,7 +33,7 @@ To output energy, heat capacity, magnetization, magnetization susceptibility:
   - Output data:
     - For 2d ising model:
     ```
-    $ ./3dising.sh
+    $ ./2dising.sh
     ```
     - For 3d ising model:
     ```
