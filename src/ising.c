@@ -17,16 +17,34 @@ double energy(int up, int down, int left, int right, int center){
     return -center * (up + down + left + right);
 }
 
+void update2d(int **lattice, int i, int j, int row, int col, double beta){
+    int new;
+    double deltaE = 0.0;
+
+    new = -lattice[i][j];
+    deltaE = energy(lattice[ (i - 1 + row) % row][j], lattice[(i + 1 + row) % row][j], lattice[i][(j - 1 + row) % row], lattice[i][(j + 1 + row) % row], new);
+    deltaE -= energy(lattice[ (i - 1 + row) % row][j], lattice[(i + 1 + row) % row][j], lattice[i][(j - 1 + row) % row], lattice[i][(j + 1 + row) % row], lattice[i][j]);
+    if ((double)rand() / (double)RAND_MAX <= exp(- beta * deltaE)){
+        lattice[i][j] = new;
+    }
+}
+
+
 int main (int argc, char *argv[]){
 
 
     static int lattice[LATTICE_LENGTH][LATTICE_LENGTH] = {};
+
+
     double T = 2;
     int col, row;
 
     T = argc > 1 ? atof(argv[1]) : 2;
     col = argc > 2 ? atoi(argv[2]) : 20;
     row = col;
+
+    // int** lattice=NULL;
+    // *lattice = malloc(col * sizeof(int *));
     // Tempurature
     int new;
     double beta = 1.0 / BOLTZMANN_CONST / T;
@@ -37,6 +55,7 @@ int main (int argc, char *argv[]){
     srand (time(NULL));
     // Initialize every grid point
     for (int i = 0; i < col; i++){
+        // lattice[i] = malloc(row * sizeof(int));
         for(int j = 0; j < row; j++){
             lattice[i][j] = 2 * (rand() % 2) - 1;
             // lattice[i][j] = 1;
@@ -52,7 +71,7 @@ int main (int argc, char *argv[]){
                 new = -lattice[i][j];
                 deltaE = energy(lattice[ (i - 1 + row) % row][j], lattice[(i + 1 + row) % row][j], lattice[i][(j - 1 + row) % row], lattice[i][(j + 1 + row) % row], new);
                 deltaE -= energy(lattice[ (i - 1 + row) % row][j], lattice[(i + 1 + row) % row][j], lattice[i][(j - 1 + row) % row], lattice[i][(j + 1 + row) % row], lattice[i][j]);
-                if ((double)rand() / (double)RAND_MAX <= exp(- beta * deltaE)){
+                if (deltaE < 0 || (double)rand() / (double)RAND_MAX <= exp(- beta * deltaE)){
                     lattice[i][j] = new;
                 }
             }
@@ -69,6 +88,7 @@ int main (int argc, char *argv[]){
                 if (deltaE < 0 || (double)rand() / (double)RAND_MAX <= exp(- beta * deltaE)){
                     lattice[i][j] = new;
                 }
+                // update2d(lattice, i, j, row, col, beta);
             }
         }
         tmpE = 0, tmpE2 = 0, tmpmag = 0, tmpmag2 = 0;
@@ -97,9 +117,10 @@ int main (int argc, char *argv[]){
 #else
     }
     printf("%f\n", T);
+    printf("%d\n", col);
     printf("%f\n", averE);
     printf("%f\n", 1.0*(averE2 - averE * averE) / T / T);
-    printf("%f\n", avermag);
+    printf("%f\n", fabs(avermag));
     printf("%f\n", 1.0*(avermag2 - avermag * avermag) / T );
 #endif
 }
