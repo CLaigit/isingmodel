@@ -104,5 +104,5 @@ int main (int argc, char *argv[]){
     printf("%f\n", 1.0*(averE2 - averE * averE) / T / T);
     printf("%f\n", fabs(avermag));
     printf("%f\n", 1.0*(avermag2 - avermag * avermag) / T );
-// #endif
+#endif
 }
