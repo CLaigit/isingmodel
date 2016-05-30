@@ -21,10 +21,9 @@ int main (int argc, char *argv[]){
 
     static int lattice[LATTICE_LENGTH][LATTICE_LENGTH][LATTICE_LENGTH] = {};
 
-    double T;
+    double T = 2;
     int col, row, zaxis;
     int new;
-    double beta = 1.0 / BOLTZMANN_CONST / T;
     double deltaE = 0.0;
     double tmpE = 0.0, tmpE2 = 0.0, averE = 0.0, averE2 = 0.0;
     double tmpmag = 0.0, tmpmag2 = 0.0, avermag = 0.0, avermag2 = 0.0;
@@ -34,6 +33,7 @@ int main (int argc, char *argv[]){
     col = argc > 2 ? atoi(argv[2]) : 20;
     row = col;
     zaxis = col;
+    double beta = 1.0 / BOLTZMANN_CONST / T;
     // Tempurature
     srand (time(NULL));
     // Initialize every grid point
@@ -108,11 +108,11 @@ int main (int argc, char *argv[]){
     }
 #else
     }
-    printf("%lf\n", T);
+    printf("%f\n", T);
     printf("%d\n", col);
-    printf("%lf\n", averE);
-    printf("%lf\n", 1.0*(averE2 - averE * averE) / T / T);
-    printf("%lf\n", fabs(avermag));
-    printf("%lf\n", 1.0*(avermag2 - avermag * avermag) / T );
+    printf("%f\n", averE);
+    printf("%f\n", 1.0*(averE2 - averE * averE) / T / T);
+    printf("%f\n", fabs(avermag));
+    printf("%f\n", 1.0*(avermag2 - avermag * avermag) / T );
 #endif
 }
