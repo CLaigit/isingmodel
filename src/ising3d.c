@@ -101,9 +101,9 @@ int main (int argc, char *argv[]){
                 for (int k = 0; k < zaxis; k++){
                     printf("%d,", lattice[i][j][k]);
                 }
-                printf("%d\n", lattice[i][col-1][k]);
+                printf("%d\n", lattice[i][col-1][zaxis-1]);
             }
-            printf("%d\n", lattice[i][col-1][k]);
+            // printf("%d\n", lattice[i][col-1][k]);
         }
     }
 #else
