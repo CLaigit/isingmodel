@@ -60,6 +60,11 @@
 %%total={6.5in,8.75in}, top=1.2in, left=0.9in, includefoot,
 %%height=10in,a5paper,hmargin={3cm,0.8in},
 %]{geometry}
+\usepackage[small]{titlesec}
+\usepackage{lipsum}
+%\titleformat{\subsubsection}{\normalfont}{\thesubsection.\thesubsubsection}{1em}{\MakeUppercase{#1}}
+\renewcommand{\thesubsection}{\arabic{subsection}}
+\renewcommand{\thesubsubsection}{\arabic{subsection}.\arabic{subsubsection}}
 
 \begin{document}
 
@@ -71,10 +76,10 @@
 
 \author{Lu Yu} 
 \email{luy018@ucsd.edu}
-\author{Zhongrong Jian}
- \email{zhj@ucsd.edu}
  \author{Chen Lai}
  \email{chl588@ucsd.edu}
+ \author{Yiwen Shi}
+ \email{yis018@ucsd.edu}
 \affiliation{%
  UC San Diego\\
 % This line break forced with \textbackslash\textbackslash
@@ -139,31 +144,103 @@ We will simulate the 2d ising model and 3d ising model. From the result, we obse
 %\tableofcontents
 
 \section{\label{sec:level1}Overview}
-Introduction of Ising model\\
-
-blablabla
-
+\subsection{Introduction of Ising model}
+\subsubsection{Ising Model}
+Ising model is a mathematical model to describe the ferromagnetism property of materials. It is first invented by the physicist Wilhelm Lenz, and is then gave to his student Ernst Ising, after whom the model is named, as a problem.  
+\subsubsection{Ferromagnetism}
+Ferromagnetism is a basic mechanism of certain materials (such as iron), that forms permanent magnets or attracted to magnets. Ferromagnetism can be divided into several distinguished types, such as ferrimagnetism, which is the strongest one, and some types response weakly, such as paramagnetism, diamagnetism and antiferromagnetism.   
+Ferromagnetism describes the chemical make-up, crystalline structure and also microstructure of materials, and it is arises due to two effects from quantum mechanics: spin and the Pauli Exclusion Principle.  
+Generally speaking, the ferromagnetism of materials come from the spin property of electrons. Electrons has a quantum mechanical spin, which arises the magnetic dipole moment of it. The spin of the electron can only be in two states, either with magnetic field pointing "up" or "down", and it is the mainly source of ferromagnetism. When these magnetic dipoles pointing in the same direction, then the tiny magnetic fields add together to a much larger macroscopic field.  
+And for materials made of atoms with filled electron shells, the magnetic moment of every electron is cancelled by the opposite moment of the second electron in the pair, such result in a total dipole moment of zero. So, only atoms with unpaired spins can have a net magnetic moment. So only materials with partially filled shells have ferromagnetism.  
+~\\
 \section{\label{sec:level1}2D Ising model}
-
-Hamiltonian equation:
+\subsection{Basic Idea}
+Consider a d-dimensional lattice, each lattice site $k \in \Lambda$ is a discrete variable  which indicate the spin state of the site. There is an interaction $J_{ij}$ between any two adjacent sites $i, j \in \Lambda$, and for each site $j \in \Lambda$, there is an external magnetic field $h_j$ interacting with it. The energy is approximated using the Hamiltonian equation:
 \begin{align}
-    H = \sum_(i,j)
+\mathcal{H}(\sigma) = -\sum_{\langle i, j\rangle} J_{ij} \sigma_i \sigma_j - \mu \sum_j h_j \sigma_j
 \end{align}
+Here we ignore the external magnetic term, so the Hamiltonian equation becomes
+\begin{equation}
+\mathcal{H}(\sigma) = -\sum_{\langle i, j\rangle} J_{ij} \sigma_i \sigma_j
+\end{equation}
 
-\subsection{\label{sec:level1}Model overview}
+\subsection{\label{sec:level1}2D Model overview}
+\subsubsection{Hamiltonian}
+Consider the lattice $\Lambda$, denote the lattice site $\sigma_{ij}$ to be the site in location $(i, j)$, and the Hamiltonian is 
+\begin{equation}
+\mathcal{H}(\sigma) = -\sum_{\langle (i, j), (i', j')\rangle} J_{(i,j), (i'j')} \sigma_{ij} \sigma_{i'j'}
+\end{equation}
+Updating for flipping the spin in site $(i,j)$ will involve sites around it, which are $(i-1, i)$, $(i+1, j)$, $(i, j-1)$, $(i, j+1)$. So when updating one single site $\sigma^{new}_{i,j} = - \sigma_{i,j}$, the change in Hamiltonian will be 
+\begin{equation}
+\Delta \mathcal{H} = 2(\sigma_{i-1, j} + \sigma_{i+1, j} + \sigma_{i, j+1} + \sigma{i, j-1}) \sigma_{i,j}
+\end{equation}
+\subsubsection{Updating Algorithm - One Sweep}
+\begin{enumerate}
+\item For each site in the lattice, calculate the $\Delta \mathcal{H}$ according to flipping the spin of this site. 
+\item If $\Delta \mathcal{H} < 0$, accept the flip, update the spin state. \item If $\Delta \mathcal{H} > 0$, flip the spin state of site $(i,j)$ with probability  $\exp(\delta \mathcal{H} / kT)$. Which is to generate a random number between $[0, 1]$. If the random number if less than the probability, then accept the update, if not, reject the update. 
+\end{enumerate}
+Note: Using periodic boundary conditions.
 
+\subsubsection{Updating Algorithm - Monte Carlo Process}
+\begin{enumerate}
+\item Perform $N_{therm}$ sweeps for warm up, to reach a relatively stable status 
+\item Perform $N_{meas}$ sweeps for measurement, take each 100 record as a measurement.   \item Output the data and perform the calculation (some expectation values). 
+\end{enumerate}
 
-\subsection{\label{sec:level1}Analytic solution(TODO)}
+\subsubsection{Critical Temperature}
+For 2D Ising model, there is a critical temperature, at which the material will have a transition in phase. We are using two approaches to obtain the critical temperature here:
+\begin{enumerate}
+\item Energy - Temperature figure  \\
+Observe the expectation value of energy according to the temperature, and the critical temperature should locate in where the curve has the greatest slope. In which  
+\[
+\langle E \rangle = \frac{1}{2} \langle \sum^{N}_{i} \mathcal{H}_i \rangle = \frac{1}{2} \langle -J \sum^N_i \sum_{j_{nn}} s_i s_j\rangle
+\]
+\item Heat Capacity - Temperature plot \\
+Observe the heat capacity according to the temperature, and the critical temperature should locate in where the heat capacity has the greatest value. In which  
+\[
+C = \frac{\partial E}{\partial T} = \frac{\Delta E^2}{k_b T} = \frac{\langle E^2 \rangle - \langle E\rangle^2}{k_b T^2}
+\]
+\end{enumerate}\subsection{\label{sec:level1}Analytic solution}
+\subsubsection{Partition Function}
+Now discuss the Analytic solution of the Ising model in a square lattice $\Lambda$ with $N$ sites, and using periodic boundary condition, which is exactly what we are using in our experiment.  \\
+Denote $J_h$ and $J_v$ to be number of horizontal and vertical coupling respectively. And denote 
+\[
+K = \beta J_h \qquad L = \beta J_v
+\]
+In which, $\beta = 1/(kT)$, and $T$ is the absolute temperature and $k$ is the Boltzmann's constant. Thus the partition function can be written as 
+\begin{equation}
+Z_N(K, L) = \sum_{\{\sigma\}} \exp \bigg( K \sum_{\langle i,j \rangle_H} \sigma_i \sigma_j + L \sum_{\langle i,j\rangle_V}\sigma_i \sigma_j\bigg)
+\end{equation}
 
-
+\subsubsection{Critical Temperature}
+The analytical critical temperature $T_c$ is obtained using the Kramers-Wannier duality relation, which in this case gives 
+\[
+\beta F(K^*, L^*) = \beta F(K, L) + \frac{1}{2} \log [\sinh(2K)\sinh(2L)]
+\]
+In which, $F(K, L)$ is the free energy per site, and also have the following relations
+\[
+\begin{array}{c}
+\sinh(2K^*)\sinh(2L) = 1\\
+\sinh(2L^*)\sinh(2K) = 1
+\end{array}
+\]
+And because there is only one critical temperature, so that use the assumption that there is only one critical line in the $(K, L)$ plane, the duality relation above implies that 
+\[
+\sinh(2K)\sinh(2L) = 1
+\]
+And for our square lattice, $J_h = J_v$, which is the isotropic case, the relation for critical temperature $T_c$ is 
+\[
+\frac{kT_c}{J_h} = \frac{2}{\ln(1+\sqrt{2})} \approx 2.26918531421
+\]
 \subsection{\label{sec:level1}Numerical result}
+---------------------------- TODO ----------------------------
 
 \section{\label{sec:level1}3D Ising model}
 
 \subsection{\label{sec:level1}Model overview}
 
 
-\subsection{\label{sec:level1}Analytic solution(TODO)}
+\subsection{\label{sec:level1}Analytic solution}
 
 
 \subsection{\label{sec:level1}Numerical result}
