@@ -7,7 +7,7 @@ LATTICE_LENGTH=(20 30)
 for l in ${LATTICE_LENGTH[@]}; do
     for t in ${Tempurature[@]}; do
         echo Tempurature: $t lattice_length $l   Outputfile: isingT${t}L${l}.dat
-        mkdir data/2d/lattice$l
+        mkdir -p data/2d/lattice$l
         ./src/ising.o $t  $l >   data/2d/lattice$l/isingT${t}L${l}.dat
     done
 done
