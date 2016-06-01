@@ -70,7 +70,7 @@
 
 \preprint{APS/123-QED}
 
-\title{Simulation of the collision between Andromeda and the Milky Way
+\title{2D and 3D Ising model implementation and Ayalysis
 }% Force line breaks with \\
 %\thanks{A footnote to the article title}%
 
@@ -236,32 +236,55 @@ And for our square lattice, $J_h = J_v$, which is the isotropic case, the relati
 ---------------------------- TODO ----------------------------
 
 \section{\label{sec:level1}3D Ising model}
+In previous section, we introduced the general idea of 2D Ising model, which is based on a 2D plane. In this section, we are going to talked about 3D ising model,  which as the name suggested, is based on 3D space. We will perform our experiment in a square cube lattice, which contain $N$ sites. Ising model is originally designed to describe the magnetism of materials, so we'll also assuming our system is a magnetization system, and examine some related physical.
 
-\subsection{\label{sec:level1}Model overview}
+\subsection{\label{sec:level1}3D Model overview}
+\subsubsection{Hamiltonian}
+In 3D case, the Hamiltonian can be written as 
+\begin{equation}
+\begin{aligned}
+\mathcal{H} &= - J \sum^N_{i,j,k=1}( S_{i-1,j}S_{i,j} + S_{i,j}S_{i+1,j} \\ 
+&+ S_{i,j-1}S_{i,j} + S_{i,j}S_{i,j+1} + S_{i-1,k}S_{i,k} \\
+&+ S_{i,k}S_{i+1,k} + S_{i,k-1}S_{i,k} + S_{i,k}S_{i,k+1} \\
+&+ S_{j-1,k}S_{j, k}+ S_{j,k}S_{j+1,k} + S_{j,k}S_{j,k-1} \\
+& + S_{j,k}S_{j,k+1}) - \mathbf{H}\sum^N_i \mathbf{s_i}
+\end{aligned}
+\end{equation}
+Where $\mathbf{H}$ is the external force, for simplicity, we ignore the external force in our experiment. So that $\mathbf{H} = 0$.
 
-
-\subsection{\label{sec:level1}Analytic solution}
-
+\subsubsection{Magnetic Property}
+The magnetization is denoted as $M$, which of a given configuration can be given by
+\begin{equation}
+M = \frac{1}{N} \sum^N_i S_i
+\end{equation}
+The magnetic susceptibility is denoted as $\chi$, and is calculated as 
+\begin{equation}
+\chi = \frac{1}{k T}(\langle M^2\rangle - \langle M\rangle^2)
+\end{equation}
+In which, $k$ is Boltzmann's constant, and $T$ is the temperature of the system.
+%\subsection{\label{sec:level1}Analytic solution}
 
 \subsection{\label{sec:level1}Numerical result}
-
+---------------------------- TODO ----------------------------
 
 
 \section{\label{sec:level1}parallel(cuda, matlab)
 }
 
 \subsection{\label{sec:level1}CUDA}
+Numerical approach of Ising model requires computation on each lattice site, which when lattice becomes really large scaled will become very computationally heavily. So we want to find a way to improve the computation efficiency and reduce the computation time. \\
+Because calculation for one site only involves adjacent sites, so the basic idea of improve computation efficiency is to separate the whole space into two parts, and calculation for one part depend on another part, and do not depend on sites inside this part, and calculate each parts in turn. For example in 2D case, we can calculate for odd sites using the previous values of even sites, and then calculate for even sites using the updated odd sites, iteratively perform the steps until convergence.  \\
 
-In our simulation, we used CUDA to enable parallel computation for different particles. 
+---------------- figures here for explanation -----------------\\
+
+Following this idea, when computing for one part, if the computation can be paralleled, this will largely decrease computation time, so we are using CUDA to enable parallel computation for different sites. The updating algorithm is exactly the same as previously stated, the only difference is that without parallelization, each iteration requires N sweeps for each sites in the lattice, while using parallelization will compress number of sweeps each iteration.  
+
 
 \subsection{\label{sec:level1}Matlab}
-
-parfor
-
-
+---------------------------- TODO ----------------------------
+~\\~\\
 \section{\label{sec:level1}Conclusion}
-
-result
+---------------------------- TODO ----------------------------
 
 % \bibliographystyle{apsrev4-1}
 % \bibliography{ref}
