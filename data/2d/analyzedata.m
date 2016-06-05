@@ -35,7 +35,7 @@ for i = 1:count
 end
 legend(folder);
 xlabel('Temperature');
-ylabel();
+ylabel('Heat Compacity');
 hold off;
 
 subplot(2,2,3);
@@ -55,6 +55,6 @@ for i = 1:count
 end
 legend(folder);
 xlabel('Temperature');
-ylabel();
+ylabel('Magnetization Susceptibility');
 hold off;
 saveas(gcf,'plot','png')
