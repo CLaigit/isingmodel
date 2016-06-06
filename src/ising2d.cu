@@ -40,10 +40,14 @@ Ising model: Halmitonian H = /sum_ij J(sigma_i)(sigma_j)
 #define  LATTICE_2 (LATTICE_LENGTH * LATTICE_LENGTH)
 #define  BOLTZMANN_CONST 1
 #define  N LATTICE_LENGTH
+#define  TIME_LENGTH 1e3
 
-__device__ int energy(int up, int down, int left, int right, int center);
-__global__ void update(int *lattice, unsigned int offset);
-__global__ void printstate(int *lattice);
+__global__ void update(int* lattice, const unsigned int offset, double beta);
+__global__ void printstate(double *energy);
+__global__ void initalEnergy(int* lattice, double* energy);
+__device__ double local_energy(int up, int down, int left, int right, int center);
+__global__ void updateEnergy(int* lattice, double* energy);
+
 
 
 /*
@@ -57,8 +61,8 @@ __global__ void printstate(int *lattice);
 __global__ void update(int* lattice, const unsigned int offset, double beta){
     // Calculate the global index
     // Calculate the global index for the up, down, left, right index.
-    const unsigned int idx = blockIdx.x * blockDim.y + threadIdx.x + offset;
-    const unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y + offset;
+    const unsigned int idx = blockIdx.x * blockDim.y + threadIdx.x;
+    const unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y;
     const unsigned int idx_l = (idx - 1 + N) % N;
     const unsigned int idx_r = (idx + 1 + N) % N;
     const unsigned int idy_u = (idy - 1 + N) % N;
@@ -72,24 +76,27 @@ __global__ void update(int* lattice, const unsigned int offset, double beta){
     curand_init(idx, idx + 1, 0, &state);
 
     if (idx < N && idy < N && idx_l < N && idx_r < N && idy_u < N && idy_d < N){
-        // generate a random number between (0,1) uniformly
-        pro_rand = curand_uniform(&state);
+        if( ((idx + idy) % 2 == 0 && offset == 0) || ((idx + idy) % 2 == 1 && offset == 1) ){
+            // generate a random number between (0,1) uniformly
+            pro_rand = curand_uniform(&state);
 
-        up = lattice[idx + idy_u * N];
-        down = lattice[idx + idy_d * N];
-        left = lattice[idx_l + idy * N];
-        right = lattice[idx_r + idy * N];
-        center = lattice[idx + idy * N];
+            up = lattice[idx + idy_u * N];
+            down = lattice[idx + idy_d * N];
+            left = lattice[idx_l + idy * N];
+            right = lattice[idx_r + idy * N];
+            center = lattice[idx + idy * N];
 
-        // Flip the center element
-        flip = -center;
-        // Calculate the difference between these two state
-        deltaE = energy(up, down, left, right, flip);
-        deltaE -= energy(up, down, left, right, center);
+            // Flip the center element
+            flip = -center;
+            // Calculate the difference between these two state
+            deltaE = local_energy(up, down, left, right, flip);
+            deltaE -= local_energy(up, down, left, right, center);
 
-        // If deltaE < 0 or pro_rand <= e^(-beta * deltaE), accept new value
-        if (pro_rand <= exp(- beta * deltaE)){
-            lattice[idx + idy * N ] = flip;
+            // If deltaE < 0 or pro_rand <= e^(-beta * deltaE), accept new value
+            if (pro_rand <= exp(- beta * deltaE)){
+                lattice[idx + idy * N ] = flip;
+                // energy[idx + idy * N] += 1.0 * deltaE / TIME_LENGTH;
+            }
         }
     }
 }
@@ -100,12 +107,12 @@ __global__ void update(int* lattice, const unsigned int offset, double beta){
 *   index of the matrx.
 *   it prints (x, y, (1 or -1)).
 */
-__global__ void printstate(int* lattice) {
+__global__ void printstate(double* energy) {
     const unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
     const unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (idx < N && idy < N){
-        printf("%d, %d, %d\n", idx, idy, lattice[idx + idy * N]);
+        printf("%d, %d, %f\n", idx, idy, energy[idx + idy * N]);
     }
 }
 
@@ -114,13 +121,48 @@ __global__ void printstate(int* lattice) {
 *   energy is the function used to calculate the energy between
 *   (center, up), (center, down), (center, left), (center, right)
 */
-__device__ int energy(int up, int down, int left, int right, int center){
-    double H;
-    H = -up * center;
-    H -= down * center;
-    H -= left * center;
-    H -= right * center;
-    return H;
+__device__ double local_energy(int up, int down, int left, int right, int center){
+    return -center * (up + down + left + right);
+}
+
+__global__ void initalEnergy(int* lattice, double* energy){
+    const unsigned int idx = blockIdx.x * blockDim.y + threadIdx.x;
+    const unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y;
+    const unsigned int idx_l = (idx - 1 + N) % N;
+    const unsigned int idx_r = (idx + 1 + N) % N;
+    const unsigned int idy_u = (idy - 1 + N) % N;
+    const unsigned int idy_d = (idy + 1 + N) % N;
+    int up, down, left, right, center;
+
+    up = lattice[idx + idy_u * N];
+    down = lattice[idx + idy_d * N];
+    left = lattice[idx_l + idy * N];
+    right = lattice[idx_r + idy * N];
+    center = lattice[idx + idy * N];
+
+    if (idx < N && idy < N && idx_l < N && idx_r < N && idy_u < N && idy_d < N){
+        energy[idx + N * idy] = 1.0 * local_energy(up, down, left, right, center) / TIME_LENGTH;
+    }
+}
+
+__global__ void updateEnergy(int* lattice, double* energy){
+    const unsigned int idx = blockIdx.x * blockDim.y + threadIdx.x;
+    const unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y;
+    const unsigned int idx_l = (idx - 1 + N) % N;
+    const unsigned int idx_r = (idx + 1 + N) % N;
+    const unsigned int idy_u = (idy - 1 + N) % N;
+    const unsigned int idy_d = (idy + 1 + N) % N;
+    int up, down, left, right, center;
+
+    up = lattice[idx + idy_u * N];
+    down = lattice[idx + idy_d * N];
+    left = lattice[idx_l + idy * N];
+    right = lattice[idx_r + idy * N];
+    center = lattice[idx + idy * N];
+
+    if (idx < N && idy < N && idx_l < N && idx_r < N && idy_u < N && idy_d < N){
+        energy[idx + N * idy] += 1.0 * local_energy(up, down, left, right, center) / TIME_LENGTH;
+    }
 }
 
 /*
@@ -132,11 +174,14 @@ int main (int argc, char *argv[]){
 
     int *lattice;
     int *d_lattice;
+
+    double *energy;
+    double *d_energy;
+
     double T = 2;
-    int warmsteps = 1;
-    int nout;
-    nout = 2;
-    int warp = 1000;
+    int warmsteps = 1e3;
+    int nout = TIME_LENGTH;
+    int warp = 1e3;
 
     int numthreadx = 16;
     int numthready = 16;
@@ -149,17 +194,18 @@ int main (int argc, char *argv[]){
 
     // Define the size of lattice and energy
     const size_t bytes_lattice = LATTICE_2 * sizeof(int);
-    const size_t bytes_energy = sizeof(int);
+    const size_t bytes_energy = sizeof(double);
 
     // Allocate memory for lattice. It is a lattice^2 long array.
     // The value can only be 1 or -1.
     lattice = (int*)malloc(LATTICE_2 * sizeof(int));
-    // energy = (int*)malloc(sizeof(int));
+    energy = (double*)malloc(LATTICE_2 * sizeof(double));
 
     // initialize lattice by rand(-1, 1)
     for(int i = 0; i < LATTICE_2; i++){
-            lattice[i] = 2 * (rand() % 2) - 1;
-            //lattice[i] = 1;
+        lattice[i] = 2 * (rand() % 2) - 1;
+        energy[i] = 0.0;
+        //lattice[i] = 1;
     }
 
     // Set dimensions of block and grid
@@ -171,31 +217,46 @@ int main (int argc, char *argv[]){
 
     // Allocate memoery in device and copy from host to device
     cudaMalloc((void **)&d_lattice, bytes_lattice);
-    // cudaMalloc((void **)&d_energy, bytes_energy);
+    cudaMalloc((void **)&d_energy, bytes_lattice);
+
     cudaMemcpy(d_lattice, lattice, bytes_lattice, cudaMemcpyHostToDevice);
-    // cudaMemcpy(d_energy, energy, bytes_energy, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_energy, energy, bytes_energy, cudaMemcpyHostToDevice);
 
     // To change the buffer size of printf; otherwise it cannot print all data
     cudaDeviceSetLimit(cudaLimitPrintfFifoSize, N * N * sizeof(int) * N);
 
     // Warmup process
+
     for (int iter = 0; iter < warmsteps; iter++){
         update<<<grid, thread>>>(d_lattice, 0, beta);
         update<<<grid, thread>>>(d_lattice, 1, beta);
-        cudaDeviceSynchronize();
+        // cudaDeviceSynchronize();
         if(iter % warp == 0)
             fprintf(stderr,"Warmup Iteration: %d\n", iter);
     }
+    initalEnergy<<<grid, thread>>>(d_lattice, d_energy);
 
     // Measure process
     for (int nstep = 0; nstep < nout; nstep++){
         update<<<grid, thread>>>(d_lattice, 0, beta);
         update<<<grid, thread>>>(d_lattice, 1, beta);
-        cudaDeviceSynchronize();
-        printstate<<<grid, thread>>>(d_lattice);
+        updateEnergy<<<grid, thread>>>(d_lattice, d_energy);
         if(nstep % warp == 0)
             fprintf(stderr,"Measure Iteration: %d\n", nstep);
     }
+    // printstate<<<grid, thread>>>(d_energy);
+
+     cudaMemcpy(energy, d_energy, bytes_energy, cudaMemcpyDeviceToHost);
+
+//     int sum = 0;
+//     for (int i = 0; i < N ; i++){
+//         for (int j = 0; j < N; j++){
+//             sum += energy[i + j * N];
+//         }
+//     }
+//     printf("%f\n", 1.0 * sum / LATTICE_2);
+    printstate<<<grid, thread>>>(d_energy);
+
 
     free(lattice);
     cudaFree(d_lattice);
