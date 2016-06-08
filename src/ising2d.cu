@@ -303,6 +303,7 @@ int main (int argc, char *argv[]){
     cudaMalloc((void **)&d_energy, bytes_energy);
     // cudaMalloc((void **)&d_energy2, bytes_energy);
     cudaMalloc((void **)&d_random, bytes_random);
+    cudaMalloc((void **)&d_states, LATTICE_2 * sizeof(curandState));
 
     cudaMemcpy(d_lattice, lattice, bytes_lattice, cudaMemcpyHostToDevice);
     cudaMemcpy(d_energy, energy, bytes_energy, cudaMemcpyHostToDevice);
