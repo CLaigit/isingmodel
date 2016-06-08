@@ -49,7 +49,6 @@ __global__ void updateEnergy(int* lattice, double* energy, int init);
 __global__ void update_random(int* lattice, double* random, const unsigned int offset, double beta);
 
 
-
 /*
 *   update is the function to update a point
 *   1. flip a point (1 -> -1 or -1 -> 1)
@@ -277,6 +276,8 @@ int main (int argc, char *argv[]){
             random[i] = (double)rand() / (double)RAND_MAX;
         }
         cudaMemcpy(d_random, random, bytes_random, cudaMemcpyHostToDevice);
+        update_random<<<grid, thread>>>(d_lattice, d_random, 0, beta);
+        update_random<<<grid, thread>>>(d_lattice, d_random, 1, beta);
         // update<<<grid, thread>>>(d_lattice, 0, beta);
         // update<<<grid, thread>>>(d_lattice, 1, beta);
         updateEnergy<<<grid, thread>>>(d_lattice, d_energy, 0);
