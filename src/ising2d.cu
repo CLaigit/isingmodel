@@ -47,6 +47,7 @@ __global__ void printstate(double *energy);
 __device__ double local_energy(int up, int down, int left, int right, int center);
 __global__ void updateEnergy(int* lattice, double* energy, int init);
 __global__ void update_random(int* lattice, double* random, const unsigned int offset, double beta);
+__global__ void update_2(int* lattice, const unsigned int offset, double beta, curandState* state);
 
 
 /*
@@ -73,6 +74,49 @@ __global__ void update(int* lattice, const unsigned int offset, double beta, int
     // To generate random number in cuda
     curandState_t state;
     curand_init(idx, idx + flag, 0, &state);
+
+    if (idx < N && idy < N && idx_l < N && idx_r < N && idy_u < N && idy_d < N){
+        if( ((idx + idy) % 2 == 0 && offset == 0) || ((idx + idy) % 2 == 1 && offset == 1) ){
+            // generate a random number between (0,1) uniformly
+            pro_rand = curand_uniform(&state);
+
+            up = lattice[idx + idy_u * N];
+            down = lattice[idx + idy_d * N];
+            left = lattice[idx_l + idy * N];
+            right = lattice[idx_r + idy * N];
+            center = lattice[idx + idy * N];
+
+            // Flip the center element
+            flip = -center;
+            // Calculate the difference between these two state
+            deltaE = local_energy(up, down, left, right, flip);
+            deltaE -= local_energy(up, down, left, right, center);
+
+            // If deltaE < 0 or pro_rand <= e^(-beta * deltaE), accept new value
+            if (pro_rand <= exp(- beta * deltaE)){
+                lattice[idx + idy * N ] = flip;
+                // energy[idx + idy * N] += 1.0 * deltaE / TIME_LENGTH;
+            }
+        }
+    }
+}
+__global__ void update_2(int* lattice, const unsigned int offset, double beta, curandState* state){
+    // Calculate the global index
+    // Calculate the global index for the up, down, left, right index.
+    const unsigned int idx = blockIdx.x * blockDim.y + threadIdx.x;
+    const unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y;
+    const unsigned int idx_l = (idx - 1 + N) % N;
+    const unsigned int idx_r = (idx + 1 + N) % N;
+    const unsigned int idy_u = (idy - 1 + N) % N;
+    const unsigned int idy_d = (idy + 1 + N) % N;
+    int flip, up, down, left, right, center;
+    double pro_rand;
+    double deltaE;
+
+    // To generate random number in cuda
+    curandState local_state = state[idx + idy * N];
+    pro_rand = curand_uniform(&local_state);
+    state[idx + idy * N] = local_state;
 
     if (idx < N && idy < N && idx_l < N && idx_r < N && idy_u < N && idy_d < N){
         if( ((idx + idy) % 2 == 0 && offset == 0) || ((idx + idy) % 2 == 1 && offset == 1) ){
@@ -258,6 +302,10 @@ int main (int argc, char *argv[]){
     // To change the buffer size of printf; otherwise it cannot print all data
     cudaDeviceSetLimit(cudaLimitPrintfFifoSize, N * N * sizeof(int) * N);
 
+
+    curandState *d_states;
+    setup_rng<<<grid, thread>>>(d_states, time(NULL));
+
     // Warmup process
 
     for (int iter = 0; iter < warmsteps; iter++){
@@ -267,8 +315,10 @@ int main (int argc, char *argv[]){
         cudaMemcpy(d_random, random, bytes_random, cudaMemcpyHostToDevice);
         // update_random<<<grid, thread>>>(d_lattice, d_random, 0, beta);
         // update_random<<<grid, thread>>>(d_lattice, d_random, 1, beta);
-        update<<<grid, thread>>>(d_lattice, 0, beta, iter);
-        update<<<grid, thread>>>(d_lattice, 1, beta, iter);
+        // update<<<grid, thread>>>(d_lattice, 0, beta, iter);
+        // update<<<grid, thread>>>(d_lattice, 1, beta, iter);
+        update_2<<<grid, thread>>>(d_lattice, 0, beta, iter, d_states);
+        update_2<<<grid, thread>>>(d_lattice, 1, beta, iter, d_states);
         // cudaDeviceSynchronize();
         if(iter % warp == 0)
             fprintf(stderr,"Warmup Iteration: %d\n", iter);
@@ -282,8 +332,11 @@ int main (int argc, char *argv[]){
         cudaMemcpy(d_random, random, bytes_random, cudaMemcpyHostToDevice);
         // update_random<<<grid, thread>>>(d_lattice, d_random, 0, beta);
         // update_random<<<grid, thread>>>(d_lattice, d_random, 1, beta);
-        update<<<grid, thread>>>(d_lattice, 0, beta, nstep);
-        update<<<grid, thread>>>(d_lattice, 1, beta, nstep);
+        // update<<<grid, thread>>>(d_lattice, 0, beta, nstep);
+        // update<<<grid, thread>>>(d_lattice, 1, beta, nstep);
+        update_2<<<grid, thread>>>(d_lattice, 0, beta, iter, d_states);
+        update_2<<<grid, thread>>>(d_lattice, 1, beta, iter, d_states);
+
         updateEnergy<<<grid, thread>>>(d_lattice, d_energy, 0);
         if(nstep % warp == 0)
             fprintf(stderr,"Measure Iteration: %d\n", nstep);
@@ -293,7 +346,7 @@ int main (int argc, char *argv[]){
     // cudaMemcpy(energy2, d_energy2, bytes_energy2, cudaMemcpyDeviceToHost);
 
     double sum = 0.0;
-    double sum2 = 0.0;
+    // double sum2 = 0.0;
 
     for (int i = 0; i < N ; i++){
         for (int j = 0; j < N; j++){
