@@ -42,7 +42,7 @@ Ising model: Halmitonian H = /sum_ij J(sigma_i)(sigma_j)
 #define  N LATTICE_LENGTH
 #define  TIME_LENGTH 1e3
 
-__global__ void update(int* lattice, const unsigned int offset, double beta);
+__global__ void update(int* lattice, const unsigned int offset, double beta, int flag);
 __global__ void printstate(double *energy);
 __device__ double local_energy(int up, int down, int left, int right, int center);
 __global__ void updateEnergy(int* lattice, double* energy, int init);
@@ -57,7 +57,7 @@ __global__ void update_random(int* lattice, double* random, const unsigned int o
 *   4. if the energy is larger, generate a random number pro_rand (0,1),
 *      if pro_rand < e^(-beta * delatE), aceept. else reject.
 */
-__global__ void update(int* lattice, const unsigned int offset, double beta){
+__global__ void update(int* lattice, const unsigned int offset, double beta, int flag){
     // Calculate the global index
     // Calculate the global index for the up, down, left, right index.
     const unsigned int idx = blockIdx.x * blockDim.y + threadIdx.x;
@@ -72,7 +72,7 @@ __global__ void update(int* lattice, const unsigned int offset, double beta){
 
     // To generate random number in cuda
     curandState_t state;
-    curand_init(idx, idx + 1, 0, &state);
+    curand_init(idx, idx + flag, 0, &state);
 
     if (idx < N && idy < N && idx_l < N && idx_r < N && idy_u < N && idy_d < N){
         if( ((idx + idy) % 2 == 0 && offset == 0) || ((idx + idy) % 2 == 1 && offset == 1) ){
@@ -111,7 +111,6 @@ __global__ void update_random(int* lattice, double* random, const unsigned int o
     const unsigned int idy_d = (idy + 1 + N) % N;
     int flip, up, down, left, right, center;
     double deltaE;
-
 
     if (idx < N && idy < N && idx_l < N && idx_r < N && idy_u < N && idy_d < N){
         if( ((idx + idy) % 2 == 0 && offset == 0) || ((idx + idy) % 2 == 1 && offset == 1) ){
@@ -199,6 +198,9 @@ int main (int argc, char *argv[]){
     double *energy;
     double *d_energy;
 
+    double *energy2;
+    double *d_energy2;
+
     double *random;
     double *d_random;
 
@@ -231,8 +233,8 @@ int main (int argc, char *argv[]){
     for(int i = 0; i < LATTICE_2; i++){
         lattice[i] = 2 * (rand() % 2) - 1;
         energy[i] = 0.0;
+        energy2[i] = 0.0;
         random[i] = (double)rand() / (double)RAND_MAX;
-        //lattice[i] = 1;
     }
 
     // Set dimensions of block and grid
@@ -245,10 +247,12 @@ int main (int argc, char *argv[]){
     // Allocate memoery in device and copy from host to device
     cudaMalloc((void **)&d_lattice, bytes_lattice);
     cudaMalloc((void **)&d_energy, bytes_energy);
+    cudaMalloc((void **)&d_energy2, bytes_energy);
     cudaMalloc((void **)&d_random, bytes_random);
 
     cudaMemcpy(d_lattice, lattice, bytes_lattice, cudaMemcpyHostToDevice);
     cudaMemcpy(d_energy, energy, bytes_energy, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_energy2, energy2, bytes_energy2, cudaMemcpyHostToDevice);
     cudaMemcpy(d_random, random, bytes_random, cudaMemcpyHostToDevice);
 
     // To change the buffer size of printf; otherwise it cannot print all data
@@ -261,36 +265,40 @@ int main (int argc, char *argv[]){
             random[i] = (double)rand() / (double)RAND_MAX;
         }
         cudaMemcpy(d_random, random, bytes_random, cudaMemcpyHostToDevice);
-        update_random<<<grid, thread>>>(d_lattice, d_random, 0, beta);
-        update_random<<<grid, thread>>>(d_lattice, d_random, 1, beta);
-        // update<<<grid, thread>>>(d_lattice, 0, beta);
-        // update<<<grid, thread>>>(d_lattice, 1, beta);
+        // update_random<<<grid, thread>>>(d_lattice, d_random, 0, beta);
+        // update_random<<<grid, thread>>>(d_lattice, d_random, 1, beta);
+        update<<<grid, thread>>>(d_lattice, 0, beta, iter);
+        update<<<grid, thread>>>(d_lattice, 1, beta, iter);
         // cudaDeviceSynchronize();
         if(iter % warp == 0)
             fprintf(stderr,"Warmup Iteration: %d\n", iter);
     }
-    updateEnergy<<<grid, thread>>>(d_lattice, d_energy, 1);
+    updateEnergy<<<grid, thread>>>(d_lattice, d_energy, d_energy2, 1);
     // Measure process
     for (int nstep = 0; nstep < nout; nstep++){
         for(int i = 0; i < LATTICE_2; i++){
             random[i] = (double)rand() / (double)RAND_MAX;
         }
         cudaMemcpy(d_random, random, bytes_random, cudaMemcpyHostToDevice);
-        update_random<<<grid, thread>>>(d_lattice, d_random, 0, beta);
-        update_random<<<grid, thread>>>(d_lattice, d_random, 1, beta);
-        // update<<<grid, thread>>>(d_lattice, 0, beta);
-        // update<<<grid, thread>>>(d_lattice, 1, beta);
-        updateEnergy<<<grid, thread>>>(d_lattice, d_energy, 0);
+        // update_random<<<grid, thread>>>(d_lattice, d_random, 0, beta);
+        // update_random<<<grid, thread>>>(d_lattice, d_random, 1, beta);
+        update<<<grid, thread>>>(d_lattice, 0, beta, nstep);
+        update<<<grid, thread>>>(d_lattice, 1, beta, nstep);
+        updateEnergy<<<grid, thread>>>(d_lattice, d_energy, d_energy2, 0);
         if(nstep % warp == 0)
             fprintf(stderr,"Measure Iteration: %d\n", nstep);
     }
     // printstate<<<grid, thread>>>(d_energy);
     cudaMemcpy(energy, d_energy, bytes_energy, cudaMemcpyDeviceToHost);
+    cudaMemcpy(energy2, d_energy2, bytes_energy2, cudaMemcpyDeviceToHost);
 
     double sum = 0.0;
+    double sum2 = 0.0;
+
     for (int i = 0; i < N ; i++){
         for (int j = 0; j < N; j++){
             sum += energy[i + j * N];
+            sum2 += energy2[i + j * N];
         }
     }
     printf("%f\n", 0.5 * sum / LATTICE_2);
