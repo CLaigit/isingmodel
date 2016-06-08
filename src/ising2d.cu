@@ -305,7 +305,7 @@ int main (int argc, char *argv[]){
     initalEnergy<<<grid, thread>>>(d_lattice, d_energy);
     cudaMemcpy(energy, d_energy, bytes_energy, cudaMemcpyDeviceToHost);
 
-    int sum = 0;
+    double sum = 0.0;
     for (int i = 0; i < N ; i++){
         for (int j = 0; j < N; j++){
             sum += energy[i + j * N];
