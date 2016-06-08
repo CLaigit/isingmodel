@@ -233,7 +233,7 @@ int main (int argc, char *argv[]){
     for(int i = 0; i < LATTICE_2; i++){
         lattice[i] = 2 * (rand() % 2) - 1;
         energy[i] = 0.0;
-        energy2[i] = 0.0;
+        // energy2[i] = 0.0;
         random[i] = (double)rand() / (double)RAND_MAX;
     }
 
