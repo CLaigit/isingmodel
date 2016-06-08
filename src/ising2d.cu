@@ -36,7 +36,7 @@ Ising model: Halmitonian H = /sum_ij J(sigma_i)(sigma_j)
 * BOLTZMANN_CONST is bolzmann constant. It is set to 1.
 */
 
-#define  LATTICE_LENGTH 4096
+#define  LATTICE_LENGTH 256
 #define  LATTICE_2 (LATTICE_LENGTH * LATTICE_LENGTH)
 #define  BOLTZMANN_CONST 1
 #define  N LATTICE_LENGTH
