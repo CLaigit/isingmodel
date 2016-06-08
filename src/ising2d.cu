@@ -327,8 +327,8 @@ int main (int argc, char *argv[]){
         // update_random<<<grid, thread>>>(d_lattice, d_random, 1, beta);
         // update<<<grid, thread>>>(d_lattice, 0, beta, iter);
         // update<<<grid, thread>>>(d_lattice, 1, beta, iter);
-        update_2<<<grid, thread>>>(d_lattice, 0, beta, iter, d_states);
-        update_2<<<grid, thread>>>(d_lattice, 1, beta, iter, d_states);
+        update_2<<<grid, thread>>>(d_lattice, 0, beta, d_states);
+        update_2<<<grid, thread>>>(d_lattice, 1, beta, d_states);
         // cudaDeviceSynchronize();
         if(iter % warp == 0)
             fprintf(stderr,"Warmup Iteration: %d\n", iter);
@@ -344,8 +344,8 @@ int main (int argc, char *argv[]){
         // update_random<<<grid, thread>>>(d_lattice, d_random, 1, beta);
         // update<<<grid, thread>>>(d_lattice, 0, beta, nstep);
         // update<<<grid, thread>>>(d_lattice, 1, beta, nstep);
-        update_2<<<grid, thread>>>(d_lattice, 0, beta, iter, d_states);
-        update_2<<<grid, thread>>>(d_lattice, 1, beta, iter, d_states);
+        update_2<<<grid, thread>>>(d_lattice, 0, beta, d_states);
+        update_2<<<grid, thread>>>(d_lattice, 1, beta, d_states);
 
         updateEnergy<<<grid, thread>>>(d_lattice, d_energy, 0);
         if(nstep % warp == 0)
