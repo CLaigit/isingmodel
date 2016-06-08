@@ -257,6 +257,7 @@ int main (int argc, char *argv[]){
 
     double *random;
     double *d_random;
+    curandState *d_states;
 
     double T = 2;
     int warmsteps = 1e3;
@@ -314,7 +315,6 @@ int main (int argc, char *argv[]){
     cudaDeviceSetLimit(cudaLimitPrintfFifoSize, N * N * sizeof(int) * N);
 
 
-    curandState *d_states;
     ini_rng<<<grid, thread>>>(d_states, time(NULL));
 
     // Warmup process
