@@ -44,9 +44,8 @@ Ising model: Halmitonian H = /sum_ij J(sigma_i)(sigma_j)
 
 __global__ void update(int* lattice, const unsigned int offset, double beta);
 __global__ void printstate(double *energy);
-__global__ void initalEnergy(int* lattice, double* energy);
 __device__ double local_energy(int up, int down, int left, int right, int center);
-__global__ void updateEnergy(int* lattice, double* energy);
+__global__ void updateEnergy(int* lattice, double* energy, int init);
 __global__ void update_random(int* lattice, double* random, const unsigned int offset, double beta);
 
 
@@ -161,26 +160,6 @@ __global__ void printstate(double* energy) {
 */
 __device__ double local_energy(int up, int down, int left, int right, int center){
     return -center * (up + down + left + right);
-}
-
-__global__ void initalEnergy(int* lattice, double* energy){
-    const unsigned int idx = blockIdx.x * blockDim.y + threadIdx.x;
-    const unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y;
-    const unsigned int idx_l = (idx - 1 + N) % N;
-    const unsigned int idx_r = (idx + 1 + N) % N;
-    const unsigned int idy_u = (idy - 1 + N) % N;
-    const unsigned int idy_d = (idy + 1 + N) % N;
-    int up, down, left, right, center;
-
-    up = lattice[idx + idy_u * N];
-    down = lattice[idx + idy_d * N];
-    left = lattice[idx_l + idy * N];
-    right = lattice[idx_r + idy * N];
-    center = lattice[idx + idy * N];
-
-    if (idx < N && idy < N && idx_l < N && idx_r < N && idy_u < N && idy_d < N){
-        energy[idx + N * idy] = 1.0 * local_energy(up, down, left, right, center) / (TIME_LENGTH + 1);
-    }
 }
 
 __global__ void updateEnergy(int* lattice, double* energy, int init){
@@ -314,7 +293,7 @@ int main (int argc, char *argv[]){
             sum += energy[i + j * N];
         }
     }
-    printf("%f\n", 1.0 * sum / LATTICE_2);
+    printf("%f\n", 0.5 * sum / LATTICE_2);
     // printstate<<<grid, thread>>>(d_energy);
 
 
