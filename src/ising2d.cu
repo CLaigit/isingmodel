@@ -291,8 +291,10 @@ int main (int argc, char *argv[]){
 
     // Measure process
     for (int nstep = 0; nstep < nout; nstep++){
-        update_random<<<grid, thread>>>(d_lattice, d_random, 0, beta);
-        update_random<<<grid, thread>>>(d_lattice, d_random, 1, beta);
+        for(int i = 0; i < LATTICE_2; i++){
+            random[i] = (double)rand() / (double)RAND_MAX;
+        }
+        cudaMemcpy(d_random, random, bytes_random, cudaMemcpyHostToDevice);
         // update<<<grid, thread>>>(d_lattice, 0, beta);
         // update<<<grid, thread>>>(d_lattice, 1, beta);
         updateEnergy<<<grid, thread>>>(d_lattice, d_energy);
