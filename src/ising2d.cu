@@ -273,7 +273,7 @@ int main (int argc, char *argv[]){
         if(iter % warp == 0)
             fprintf(stderr,"Warmup Iteration: %d\n", iter);
     }
-    updateEnergy<<<grid, thread>>>(d_lattice, d_energy, d_energy2, 1);
+    updateEnergy<<<grid, thread>>>(d_lattice, d_energy, 1);
     // Measure process
     for (int nstep = 0; nstep < nout; nstep++){
         for(int i = 0; i < LATTICE_2; i++){
@@ -284,13 +284,13 @@ int main (int argc, char *argv[]){
         // update_random<<<grid, thread>>>(d_lattice, d_random, 1, beta);
         update<<<grid, thread>>>(d_lattice, 0, beta, nstep);
         update<<<grid, thread>>>(d_lattice, 1, beta, nstep);
-        updateEnergy<<<grid, thread>>>(d_lattice, d_energy, d_energy2, 0);
+        updateEnergy<<<grid, thread>>>(d_lattice, d_energy, 0);
         if(nstep % warp == 0)
             fprintf(stderr,"Measure Iteration: %d\n", nstep);
     }
     // printstate<<<grid, thread>>>(d_energy);
     cudaMemcpy(energy, d_energy, bytes_energy, cudaMemcpyDeviceToHost);
-    cudaMemcpy(energy2, d_energy2, bytes_energy2, cudaMemcpyDeviceToHost);
+    // cudaMemcpy(energy2, d_energy2, bytes_energy2, cudaMemcpyDeviceToHost);
 
     double sum = 0.0;
     double sum2 = 0.0;
@@ -298,7 +298,7 @@ int main (int argc, char *argv[]){
     for (int i = 0; i < N ; i++){
         for (int j = 0; j < N; j++){
             sum += energy[i + j * N];
-            sum2 += energy2[i + j * N];
+            // sum2 += energy2[i + j * N];
         }
     }
     printf("%f\n", 0.5 * sum / LATTICE_2);
