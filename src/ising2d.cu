@@ -102,7 +102,7 @@ __global__ void update(int* lattice, const unsigned int offset, double beta){
     }
 }
 
-__global__ void update_random(int* lattice, const unsigned int offset, double beta){
+__global__ void update_random(int* lattice, double* random, const unsigned int offset, double beta){
     // Calculate the global index
     // Calculate the global index for the up, down, left, right index.
     const unsigned int idx = blockIdx.x * blockDim.y + threadIdx.x;
@@ -118,8 +118,6 @@ __global__ void update_random(int* lattice, const unsigned int offset, double be
     if (idx < N && idy < N && idx_l < N && idx_r < N && idy_u < N && idy_d < N){
         if( ((idx + idy) % 2 == 0 && offset == 0) || ((idx + idy) % 2 == 1 && offset == 1) ){
             // generate a random number between (0,1) uniformly
-            pro_rand = curand_uniform(&state);
-
             up = lattice[idx + idy_u * N];
             down = lattice[idx + idy_d * N];
             left = lattice[idx_l + idy * N];
