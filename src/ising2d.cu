@@ -36,7 +36,7 @@ Ising model: Halmitonian H = /sum_ij J(sigma_i)(sigma_j)
 * BOLTZMANN_CONST is bolzmann constant. It is set to 1.
 */
 
-#define  LATTICE_LENGTH 256
+#define  LATTICE_LENGTH 4096
 #define  LATTICE_2 (LATTICE_LENGTH * LATTICE_LENGTH)
 #define  BOLTZMANN_CONST 1
 #define  N LATTICE_LENGTH
@@ -248,7 +248,6 @@ int main (int argc, char *argv[]){
     cudaMalloc((void **)&d_energy, bytes_energy);
     cudaMalloc((void **)&d_random, bytes_random);
 
-
     cudaMemcpy(d_lattice, lattice, bytes_lattice, cudaMemcpyHostToDevice);
     cudaMemcpy(d_energy, energy, bytes_energy, cudaMemcpyHostToDevice);
     cudaMemcpy(d_random, random, bytes_random, cudaMemcpyHostToDevice);
@@ -295,7 +294,6 @@ int main (int argc, char *argv[]){
     }
     printf("%f\n", 0.5 * sum / LATTICE_2);
     // printstate<<<grid, thread>>>(d_energy);
-
 
     free(lattice);
     cudaFree(d_lattice);
