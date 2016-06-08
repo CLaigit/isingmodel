@@ -198,8 +198,8 @@ int main (int argc, char *argv[]){
     double *energy;
     double *d_energy;
 
-    double *energy2;
-    double *d_energy2;
+    // double *energy2;
+    // double *d_energy2;
 
     double *random;
     double *d_random;
@@ -306,4 +306,10 @@ int main (int argc, char *argv[]){
 
     free(lattice);
     cudaFree(d_lattice);
+
+    free(energy);
+    cudaFree(d_energy);
+
+    free(random);
+    cudaFree(d_random);
 }
