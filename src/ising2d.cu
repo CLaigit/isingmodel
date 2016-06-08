@@ -179,7 +179,7 @@ __global__ void initalEnergy(int* lattice, double* energy){
     center = lattice[idx + idy * N];
 
     if (idx < N && idy < N && idx_l < N && idx_r < N && idy_u < N && idy_d < N){
-        energy[idx + N * idy] = 1.0 * local_energy(up, down, left, right, center) / TIME_LENGTH;
+        energy[idx + N * idy] = 1.0 * local_energy(up, down, left, right, center) / (TIME_LENGTH + 1);
     }
 }
 
@@ -199,7 +199,7 @@ __global__ void updateEnergy(int* lattice, double* energy){
     center = lattice[idx + idy * N];
 
     if (idx < N && idy < N && idx_l < N && idx_r < N && idy_u < N && idy_d < N){
-        energy[idx + N * idy] += 1.0 * local_energy(up, down, left, right, center) / TIME_LENGTH;
+        energy[idx + N * idy] += 1.0 * local_energy(up, down, left, right, center) / (TIME_LENGTH + 1);
     }
 }
 
@@ -305,14 +305,14 @@ int main (int argc, char *argv[]){
     initalEnergy<<<grid, thread>>>(d_lattice, d_energy);
     cudaMemcpy(energy, d_energy, bytes_energy, cudaMemcpyDeviceToHost);
 
-//     int sum = 0;
-//     for (int i = 0; i < N ; i++){
-//         for (int j = 0; j < N; j++){
-//             sum += energy[i + j * N];
-//         }
-//     }
-//     printf("%f\n", 1.0 * sum / LATTICE_2);
-    printstate<<<grid, thread>>>(d_energy);
+    int sum = 0;
+    for (int i = 0; i < N ; i++){
+        for (int j = 0; j < N; j++){
+            sum += energy[i + j * N];
+        }
+    }
+    printf("%f\n", 1.0 * sum / LATTICE_2);
+    // printstate<<<grid, thread>>>(d_energy);
 
 
     free(lattice);
