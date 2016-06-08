@@ -49,6 +49,15 @@ __global__ void updateEnergy(int* lattice, double* energy, int init);
 __global__ void update_random(int* lattice, double* random, const unsigned int offset, double beta);
 __global__ void update_2(int* lattice, const unsigned int offset, double beta, curandState* state);
 
+__global__ void ini_rng(curandState *state, unsigned long seed);
+
+
+__global__ void ini_rng(curandState *state, unsigned long seed){
+    const unsigned int idx = blockIdx.x * blockDim.y + threadIdx.x;
+    const unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y;
+    curand_init(seed, idx + idy * N, 0, &state[idx + idy * N]);
+}
+
 
 /*
 *   update is the function to update a point
@@ -100,6 +109,7 @@ __global__ void update(int* lattice, const unsigned int offset, double beta, int
         }
     }
 }
+
 __global__ void update_2(int* lattice, const unsigned int offset, double beta, curandState* state){
     // Calculate the global index
     // Calculate the global index for the up, down, left, right index.
@@ -304,7 +314,7 @@ int main (int argc, char *argv[]){
 
 
     curandState *d_states;
-    setup_rng<<<grid, thread>>>(d_states, time(NULL));
+    ini_rng<<<grid, thread>>>(d_states, time(NULL));
 
     // Warmup process
 
