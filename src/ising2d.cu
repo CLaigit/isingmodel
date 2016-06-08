@@ -183,7 +183,7 @@ __global__ void initalEnergy(int* lattice, double* energy){
     }
 }
 
-__global__ void updateEnergy(int* lattice, double* energy){
+__global__ void updateEnergy(int* lattice, double* energy, int init){
     const unsigned int idx = blockIdx.x * blockDim.y + threadIdx.x;
     const unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y;
     const unsigned int idx_l = (idx - 1 + N) % N;
@@ -198,8 +198,13 @@ __global__ void updateEnergy(int* lattice, double* energy){
     right = lattice[idx_r + idy * N];
     center = lattice[idx + idy * N];
 
-    if (idx < N && idy < N && idx_l < N && idx_r < N && idy_u < N && idy_d < N){
-        energy[idx + N * idy] += 1.0 * local_energy(up, down, left, right, center) / (TIME_LENGTH + 1);
+    if (idx < N && idy < N){
+        if(init == 1){
+            energy[idx + N * idy] = 1.0 * local_energy(up, down, left, right, center) / (TIME_LENGTH + 1);
+        }
+        else{
+            energy[idx + N * idy] += 1.0 * local_energy(up, down, left, right, center) / (TIME_LENGTH + 1);
+        }
     }
 }
 
@@ -287,8 +292,7 @@ int main (int argc, char *argv[]){
         if(iter % warp == 0)
             fprintf(stderr,"Warmup Iteration: %d\n", iter);
     }
-    // initalEnergy<<<grid, thread>>>(d_lattice, d_energy);
-
+    updateEnergy<<<grid, thread>>>(d_lattice, d_energy, 1);
     // Measure process
     for (int nstep = 0; nstep < nout; nstep++){
         for(int i = 0; i < LATTICE_2; i++){
@@ -297,12 +301,11 @@ int main (int argc, char *argv[]){
         cudaMemcpy(d_random, random, bytes_random, cudaMemcpyHostToDevice);
         // update<<<grid, thread>>>(d_lattice, 0, beta);
         // update<<<grid, thread>>>(d_lattice, 1, beta);
-        updateEnergy<<<grid, thread>>>(d_lattice, d_energy);
+        updateEnergy<<<grid, thread>>>(d_lattice, d_energy, 0);
         if(nstep % warp == 0)
             fprintf(stderr,"Measure Iteration: %d\n", nstep);
     }
     // printstate<<<grid, thread>>>(d_energy);
-    initalEnergy<<<grid, thread>>>(d_lattice, d_energy);
     cudaMemcpy(energy, d_energy, bytes_energy, cudaMemcpyDeviceToHost);
 
     double sum = 0.0;
