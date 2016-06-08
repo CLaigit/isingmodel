@@ -247,12 +247,12 @@ int main (int argc, char *argv[]){
     // Allocate memoery in device and copy from host to device
     cudaMalloc((void **)&d_lattice, bytes_lattice);
     cudaMalloc((void **)&d_energy, bytes_energy);
-    cudaMalloc((void **)&d_energy2, bytes_energy);
+    // cudaMalloc((void **)&d_energy2, bytes_energy);
     cudaMalloc((void **)&d_random, bytes_random);
 
     cudaMemcpy(d_lattice, lattice, bytes_lattice, cudaMemcpyHostToDevice);
     cudaMemcpy(d_energy, energy, bytes_energy, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_energy2, energy2, bytes_energy2, cudaMemcpyHostToDevice);
+    // cudaMemcpy(d_energy2, energy2, bytes_energy2, cudaMemcpyHostToDevice);
     cudaMemcpy(d_random, random, bytes_random, cudaMemcpyHostToDevice);
 
     // To change the buffer size of printf; otherwise it cannot print all data
