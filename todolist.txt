@@ -1,0 +1,12 @@
+1. 4 picture for 2d ising model
+    (each picture with 3-4 different lattice length ~5 ~ 20 ~200 ~1000)
+    (warm up process can be shorter, like 10^3 should be enough I guess)
+    (but you can test it first)
+    (calculate the steepest position and get the critical temperature)
+2. 4 picture for 3d ising model
+3. video
+4. CUDA code(add heat capacity, magnetization, magnetization susceptibility)
+    (time the code, compare it with c code)
+    (In Chen's cuda code, the one can work is with the commit "naive cuda code")
+    (can be a reference for cuda kernal rand() function)
+5. I will try to fit the data tomorrow. 
