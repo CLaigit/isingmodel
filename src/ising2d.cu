@@ -292,12 +292,12 @@ int main (int argc, char *argv[]){
     double heat_capacity = 1.0 * (aver_E2 - aver_E * aver_E) / T / T;
     double mag_sus = 1.0 * (aver_site2 - aver_site * aver_site) / T;
 
-    printf("%f\n", T);
-    printf("%d\n", LATTICE_LENGTH);
-    printf("%f\n", sum_E);
-    printf("%f\n", sum_E2);
-    printf("%f\n", sum_site);
-    printf("%f\n", sum_site2);
+    // printf("%f\n", T);
+    // printf("%d\n", LATTICE_LENGTH);
+    // printf("%f\n", sum_E);
+    // printf("%f\n", sum_E2);
+    // printf("%f\n", sum_site);
+    // printf("%f\n", sum_site2);
 
     // printf("%f\n", T);
     // printf("%d\n", LATTICE_LENGTH);
@@ -309,7 +309,7 @@ int main (int argc, char *argv[]){
     //
     // printf("%s\n", );
     // printf("%f\n", 0.5 * sum / LATTICE_2);
-    // printstate<<<grid, thread>>>(d_energy);
+    printstate<<<grid, thread>>>(d_energy);
 
     free(lattice);
     cudaFree(d_lattice);
