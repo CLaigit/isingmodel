@@ -294,10 +294,17 @@ int main (int argc, char *argv[]){
 
     printf("%f\n", T);
     printf("%d\n", LATTICE_LENGTH);
-    printf("%f\n", aver_E);
-    printf("%f\n", heat_capacity);
-    printf("%f\n", fabs(aver_site));
-    printf("%f\n", mag_sus );
+    printf("%f\n", sum_E);
+    printf("%f\n", sum_E2);
+    printf("%f\n", sum_site);
+    printf("%f\n", sum_site2);
+
+    // printf("%f\n", T);
+    // printf("%d\n", LATTICE_LENGTH);
+    // printf("%f\n", aver_E);
+    // printf("%f\n", heat_capacity);
+    // printf("%f\n", fabs(aver_site));
+    // printf("%f\n", mag_sus );
 
     //
     // printf("%s\n", );
