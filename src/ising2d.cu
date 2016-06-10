@@ -182,8 +182,8 @@ int main (int argc, char *argv[]){
     double *energy2;
     double *d_energy2;
 
-    double *mag2;
-    double *d_mag2;
+    double *mag;
+    double *d_mag;
 
     double *mag2;
     double *d_mag2;
@@ -265,9 +265,9 @@ int main (int argc, char *argv[]){
     }
     // printstate<<<grid, thread>>>(d_energy);
     cudaMemcpy(energy, d_energy, bytes_double, cudaMemcpyDeviceToHost);
-    cudaMemcpy(energy2, d_energy2, bytes_double2, cudaMemcpyDeviceToHost);
-    cudaMemcpy(mag, d_mag, bytes_mag, cudaMemcpyDeviceToHost);
-    cudaMemcpy(mag2, d_mag2, bytes_mag2, cudaMemcpyDeviceToHost);
+    cudaMemcpy(energy2, d_energy2, bytes_double, cudaMemcpyDeviceToHost);
+    cudaMemcpy(mag, d_mag, bytes_double, cudaMemcpyDeviceToHost);
+    cudaMemcpy(mag2, d_mag2, bytes_double, cudaMemcpyDeviceToHost);
 
     double sum_E = 0.0;
     double sum_E2 = 0.0;
