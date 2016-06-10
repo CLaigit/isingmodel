@@ -7,9 +7,9 @@ We set J = 1 first
 #include <math.h>
 #include <time.h>       /* time */
 
-#define  LATTICE_LENGTH 200
+#define  LATTICE_LENGTH 500
 #define  BOLTZMANN_CONST 1
-#define  WARMSTEPS 1e3
+#define  WARMSTEPS 1e4
 #define  NSWEEPS 1e3
 
 // Calculate the energy of the (up, center) (down, center) (left, center) ( right, center)
