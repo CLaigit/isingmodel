@@ -176,7 +176,7 @@ Note: Using periodic boundary conditions.
 \end{enumerate}
 
 \subsubsection{Critical Temperature}
-For 2D Ising model, there is a critical temperature, at which the material will have a transition in phase. We are using two approaches to obtain the critical temperature here:
+For 2D Ising model, there is a critical temperature, at which the material will have a transition in phase. And because for Ising model, this phase transition is of second order, so quantities like heat capacity $C$ and magnetization susceptibility $\chi$ will diverge at critical point. We are using four approaches to obtain the critical temperature here:
 \begin{enumerate}
 \item Energy - Temperature figure  \\
 Observe the expectation value of energy according to the temperature, and the critical temperature should locate in where the curve has the greatest slope. In which  
@@ -187,6 +187,16 @@ Observe the expectation value of energy according to the temperature, and the cr
 Observe the heat capacity according to the temperature, and the critical temperature should locate in where the heat capacity has the greatest value. In which  
 \[
 C = \frac{\partial E}{\partial T} = \frac{\Delta E^2}{k_b T} = \frac{\langle E^2 \rangle - \langle E\rangle^2}{k_b T^2}
+\]
+\item Magnetization - Temperature plot \\
+Magnetization is the order parameter for ferromagnetic coupling for Ising model. From the figure of it vs different temperature, we can observe a sharp drop near critical temperature. And magnetization can be calculated as 
+\[
+\langle M \rangle = \sum_{\text{all } i} s_i
+\]
+\item Magnetization susceptibility - Temperature plot \\
+Magnetization susceptibility can be written as the variance of magnetization, and from the plot of it vs temperature, it will has a a sharp jump neat the critical point. In finite lattice, it can be calculated as
+\[
+\langle \chi \rangle = \frac{1}{k_b} \langle (\Delta M)\rangle = \frac{1}{k_b T}(\langle M^2 \rangle - \langle M \rangle^2)
 \]
 \end{enumerate}
 
@@ -223,10 +233,12 @@ And for our square lattice, $J_h = J_v$, which is the isotropic case, the relati
 \frac{kT_c}{J_h} = \frac{2}{\ln(1+\sqrt{2})} \approx 2.26918531421
 \]
 \subsection{\label{sec:level1}Numerical result}
----------------------------- TODO ----------------------------
+As described above, we performed the simulation for 2D Ising model, and calculated expectation value of energy, heat capacity, magnetization and magnetization susceptibility. We also using different parameters for lattice in different temperature for our numerical experiment. The results are as follows. \\
+~\\
+------------------------- figures here ---------------------- \\
 
 \section{\label{sec:level1}3D Ising model}
-In previous section, we introduced the general idea of 2D Ising model, which is based on a 2D plane. In this section, we are going to talked about 3D ising model,  which as the name suggested, is based on 3D space. We will perform our experiment in a square cube lattice, which contain $N$ sites. Ising model is originally designed to describe the magnetism of materials, so we'll also assuming our system is a magnetization system, and examine some related physical.
+In previous section, we introduced the general idea of 2D Ising model, which is based on a 2D plane. In this section, we are going to talked about 3D ising model,  which as the name suggested, is based on 3D space. We will perform our experiment in a square cube lattice, which contain $N$ sites. Ising model is originally designed to describe the magnetism of materials, so we'll also assuming our system is a magnetization system, and examine some related physical. Some physical quantities for 3D model is calculated in the same way as in 2D case. 
 
 \subsection{\label{sec:level1}3D Model overview}
 \subsubsection{Hamiltonian}
@@ -242,17 +254,27 @@ In 3D case, the Hamiltonian can be written as
 \end{equation}
 Where $\mathbf{H}$ is the external force, for simplicity, we ignore the external force in our experiment. So that $\mathbf{H} = 0$.
 
+\subsubsection{Energy and heat capacity}
+The expectation value of energy can be calculated as: 
+\begin{equation}
+E = \frac{1}{N} \sum^N_i S_iS_j
+\end{equation}
+The expectation value of heat capacity can be calculated as: 
+\begin{equation}
+C = \frac{\langle E^2\rangle - \langle E \rangle^2}{k_b T^2}
+\end{equation}
+In which, $k$ is Boltzmann's constant, and $T$ is the temperature of the system.
+
 \subsubsection{Magnetic Property}
-The magnetization is denoted as $M$, which of a given configuration can be given by
+Similarly, the magnetization $M$ of a given configuration can be given by
 \begin{equation}
 M = \frac{1}{N} \sum^N_i S_i
 \end{equation}
-The magnetic susceptibility is denoted as $\chi$, and is calculated as 
+The magnetic susceptibility $\chi$ is calculated as 
 \begin{equation}
 \chi = \frac{1}{k T}(\langle M^2\rangle - \langle M\rangle^2)
 \end{equation}
 In which, $k$ is Boltzmann's constant, and $T$ is the temperature of the system.
-%\subsection{\label{sec:level1}Analytic solution}
 
 \subsection{\label{sec:level1}Numerical result}
 ---------------------------- TODO ----------------------------
@@ -300,7 +322,7 @@ Using the scheme above, apply metropolis algorithm to Ising model, we obtained f
 From the figures above, it can be observed that the critical temperature is about $2.2$, which is close to the analytic solution.
 
 \subsection{\label{sec:level1}Matlab}
----------------------------- TODO ----------------------------
+---------------------------- TODO ---------------------------- \\
 In this project, expect using c programs for computing and parellization,  we also use Matlab to animate the Ising model convergence process. To speed up in Matlab, we use parfor to execute loops in parallel.
 ~\\~\\
 \section{\label{sec:level1}Conclusion}
@@ -316,6 +338,7 @@ To compile the code, please use the \texttt{Makefile} we provided, and state eac
 \begin{description}
 \item[\texttt{make ising}] Compile 2d ising model simulation code
 \item[\texttt{make cuda}] Compile 2d ising model simulation code using cude. To compile with cuda, you have to make sure that your environment supports cuda libraries.
+\item[\texttt{make all}] Compile all C programs, including 2d and 3d c program, cuda program.
 \end{description}
 
 To run the code, you can run single simulation by typing input parameters, or using the bash script we provide.
