@@ -40,7 +40,7 @@ Ising model: Halmitonian H = /sum_ij J(sigma_i)(sigma_j)
 #define  LATTICE_2 (LATTICE_LENGTH * LATTICE_LENGTH)
 #define  BOLTZMANN_CONST 1
 #define  N LATTICE_LENGTH
-#define  TIME_LENGTH 1e3
+#define  TIME_LENGTH 1e6
 
 __global__ void printstate(double *energy);
 __device__ double local_energy(int up, int down, int left, int right, int center);
@@ -191,7 +191,7 @@ int main (int argc, char *argv[]){
     curandState *d_states;
 
     double T = 2;
-    int warmsteps = 1e3;
+    int warmsteps = 1e4;
     int nout = TIME_LENGTH;
     // int warp = 1e3;
 
@@ -292,13 +292,6 @@ int main (int argc, char *argv[]){
 
     double heat_capacity = 1.0 * (aver_E2 - aver_E * aver_E) / T / T;
     double mag_sus = 1.0 * (aver_site2 - aver_site * aver_site) / T;
-
-    // printf("%f\n", T);
-    // printf("%d\n", LATTICE_LENGTH);
-    // printf("%f\n", sum_E);
-    // printf("%f\n", sum_E2);
-    // printf("%f\n", sum_site);
-    // printf("%f\n", sum_site2);
 
     printf("%f\n", T);
     printf("%d\n", LATTICE_LENGTH);
