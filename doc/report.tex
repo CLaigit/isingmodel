@@ -48,7 +48,8 @@
 \usepackage{dcolumn}% Align table columns on decimal point
 \usepackage{bm}% bold math
 \usepackage{natbib}
-\graphicspath{{Images/}}
+\graphicspath{{figure/}}
+\usepackage{float}
 %\usepackage{hyperref}% add hypertext capabilities
 %\usepackage[mathlines]{lineno}% Enable numbering of text and display math
 %\linenumbers\relax % Commence numbering lines
@@ -107,15 +108,6 @@
 \date{\today}% It is always \today, today,
              %  but any date may be explicitly specified
 
-
-
-
-
-
-
-
-
-
 \begin{abstract}
 We will simulate the 2d ising model and 3d ising model. From the result, we observe that the critical temperature is 2.3K.  blabla, Chen will finish it later.
 %\begin{description}
@@ -128,12 +120,6 @@ We will simulate the 2d ising model and 3d ising model. From the result, we obse
 %use the optional argument of the \verb+\item+ command to give the category of each item. 
 %\end{description}
 \end{abstract}
-
-
-
-
-
-
 
 \pacs{Valid PACS appear here}% PACS, the Physics and Astronomy
                              % Classification Scheme.
@@ -177,14 +163,16 @@ Updating for flipping the spin in site $(i,j)$ will involve sites around it, whi
 \subsubsection{Updating Algorithm - One Sweep}
 \begin{enumerate}
 \item For each site in the lattice, calculate the $\Delta \mathcal{H}$ according to flipping the spin of this site. 
-\item If $\Delta \mathcal{H} < 0$, accept the flip, update the spin state. \item If $\Delta \mathcal{H} > 0$, flip the spin state of site $(i,j)$ with probability  $\exp(\delta \mathcal{H} / kT)$. Which is to generate a random number between $[0, 1]$. If the random number if less than the probability, then accept the update, if not, reject the update. 
+\item If $\Delta \mathcal{H} < 0$, accept the flip, update the spin state. 
+\item If $\Delta \mathcal{H} > 0$, flip the spin state of site $(i,j)$ with probability  $\exp(\delta \mathcal{H} / kT)$. Which is to generate a random number between $[0, 1]$. If the random number if less than the probability, then accept the update, if not, reject the update. 
 \end{enumerate}
 Note: Using periodic boundary conditions.
 
 \subsubsection{Updating Algorithm - Monte Carlo Process}
 \begin{enumerate}
 \item Perform $N_{therm}$ sweeps for warm up, to reach a relatively stable status 
-\item Perform $N_{meas}$ sweeps for measurement, take each 100 record as a measurement.   \item Output the data and perform the calculation (some expectation values). 
+\item Perform $N_{meas}$ sweeps for measurement, take each 100 record as a measurement.   
+\item Output the data and perform the calculation (some expectation values). 
 \end{enumerate}
 
 \subsubsection{Critical Temperature}
@@ -200,7 +188,9 @@ Observe the heat capacity according to the temperature, and the critical tempera
 \[
 C = \frac{\partial E}{\partial T} = \frac{\Delta E^2}{k_b T} = \frac{\langle E^2 \rangle - \langle E\rangle^2}{k_b T^2}
 \]
-\end{enumerate}\subsection{\label{sec:level1}Analytic solution}
+\end{enumerate}
+
+\subsection{\label{sec:level1}Analytic solution}
 \subsubsection{Partition Function}
 Now discuss the Analytic solution of the Ising model in a square lattice $\Lambda$ with $N$ sites, and using periodic boundary condition, which is exactly what we are using in our experiment.  \\
 Denote $J_h$ and $J_v$ to be number of horizontal and vertical coupling respectively. And denote 
@@ -272,22 +262,69 @@ In which, $k$ is Boltzmann's constant, and $T$ is the temperature of the system.
 }
 
 \subsection{\label{sec:level1}CUDA}
-Numerical approach of Ising model requires computation on each lattice site, which when lattice becomes really large scaled will become very computationally heavily. So we want to find a way to improve the computation efficiency and reduce the computation time. \\
-Because calculation for one site only involves adjacent sites, so the basic idea of improve computation efficiency is to separate the whole space into two parts, and calculation for one part depend on another part, and do not depend on sites inside this part, and calculate each parts in turn. For example in 2D case, we can calculate for odd sites using the previous values of even sites, and then calculate for even sites using the updated odd sites, iteratively perform the steps until convergence.  \\
+Numerical approach of Ising model requires computation on each lattice site, which when lattice becomes really large scaled will become very computationally heavily. And because the calculation for each site only require values from adjacent sites, so we want to compute the lattice parellelly. So we decide using cuda to speed up the computation process. \\
+The basic idea of using cuda to implement Ising model is first to divide the sites into two parts, one part of even index, and another with odd index. Each sites is assigned into a cuda thread. Then in each iteration, update the even sites, using the updated values to update the odd sites, then synchronize the data in each thread to global variable. The 2d Ising scheme is demonstrated in following figure.
 
----------------- figures here for explanation -----------------\\
+\begin{figure}[H]
+\centering
+\includegraphics[width=4cm]{cuda.png}
+\caption{2D Ising Model Cuda Scheme}
+\end{figure}
 
-Following this idea, when computing for one part, if the computation can be paralleled, this will largely decrease computation time, so we are using CUDA to enable parallel computation for different sites. The updating algorithm is exactly the same as previously stated, the only difference is that without parallelization, each iteration requires N sweeps for each sites in the lattice, while using parallelization will compress number of sweeps each iteration.  
+Using the scheme above, apply metropolis algorithm to Ising model, we obtained following numerical results.
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=8cm]{E.eps}
+\caption{Expectation value of energy, with lattice size $256 \times 256$, take $1000$ warmup steps, and $1000$ measurement steps, measure for temperature ranging from $1.0$ to $5.0$}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=8cm]{M.eps}
+\caption{Expectation value of magnetization, with lattice size $256 \times 256$, take $1000$ warmup steps, and $1000$ measurement steps, measure for temperature ranging from $1.0$ to $5.0$}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=8cm]{HC.eps}
+\caption{Expectation value of heat capacity, with lattice size $256 \times 256$, take $1000$ warmup steps, and $1000$ measurement steps, measure for temperature ranging from $1.0$ to $5.0$}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=8cm]{MS.eps}
+\caption{Expectation value of magnetization susceptibility, with lattice size $256 \times 256$, take $1000$ warmup steps, and $1000$ measurement steps, measure for temperature ranging from $1.0$ to $5.0$}
+\end{figure}
+
+From the figures above, it can be observed that the critical temperature is about $2.2$, which is close to the analytic solution.
 
 \subsection{\label{sec:level1}Matlab}
 ---------------------------- TODO ----------------------------
+In this project, expect using c programs for computing and parellization,  we also use Matlab to animate the Ising model convergence process. To speed up in Matlab, we use parfor to execute loops in parallel.
 ~\\~\\
 \section{\label{sec:level1}Conclusion}
 ---------------------------- TODO ----------------------------
 
 % \bibliographystyle{apsrev4-1}
 % \bibliography{ref}
+\section{APPENDICES}
+\subsection{Description of code}
+In this project, we use C codes and Matlab codes, the description and usage of each code is listed below.
+\subsubsection{C Code}
+To compile the code, please use the \texttt{Makefile} we provided, and state each flag as you need:
+\begin{description}
+\item[\texttt{make ising}] Compile 2d ising model simulation code
+\item[\texttt{make cuda}] Compile 2d ising model simulation code using cude. To compile with cuda, you have to make sure that your environment supports cuda libraries.
+\end{description}
+
+To run the code, you can run single simulation by typing input parameters, or using the bash script we provide.
+
+\begin{description}
+\item[\texttt{./src/ising.o T SIZE}] Run single case for 2D Ising model with C, where \texttt{T} is the temperature, and \texttt{SIZE} is the lattice size
+\item[\texttt{./src/ising2d.o T WARM MEAS WARP}] Run a single case for 2D Ising model with cuda, where \texttt{T} is the temperature used for this simulation case, \texttt{WARM} is number of warmup steps, \texttt{MEAS} is the number of measurement steps, and \texttt{WARP} is the warp steps, which is take a record among WARP steps when measuring.
+\end{description}
+
 \end{document}
 %
 % ****** End of file apssamp.tex ******
