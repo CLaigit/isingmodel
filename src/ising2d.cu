@@ -193,7 +193,7 @@ int main (int argc, char *argv[]){
     double T = 2;
     int warmsteps = 1e3;
     int nout = TIME_LENGTH;
-    int warp = 1e3;
+    // int warp = 1e3;
 
     int numthreadx = 16;
     int numthready = 16;
@@ -310,8 +310,13 @@ int main (int argc, char *argv[]){
     free(energy);
     cudaFree(d_energy);
 
-    free(energy);
-    cudaFree(d_energy);
-    free(energy);
-    cudaFree(d_energy);
+    free(energy2);
+    cudaFree(d_energy2);
+
+    free(mag);
+    cudaFree(d_mag);
+
+    free(mag2);
+    cudaFree(d_mag2);
+
 }
