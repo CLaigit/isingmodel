@@ -209,7 +209,7 @@ In which, $k$ is Boltzmann's constant, and $T$ is the temperature of the system.
 
 \subsection{\label{sec:level1}CUDA}
 \subsubsection{Basic Idea and Implementation Details}
-Numerical approach of Ising model requires computation on each lattice site, which when lattice becomes really large scaled will become very computationally heavily. And because the calculation for each site only require values from adjacent sites, so we want to compute the lattice parellelly. So we decide using CUDA to speed up the computation process. \\
+Numerical approach of Ising model requires computation on each lattice site, which when lattice becomes really large scaled, the computation will become very expensive. And because the calculation for each site only require values from adjacent sites, and won't change the value of them, thus the lattice can be computed parallel. So we decide using CUDA to speed up the computation process. \\
 The basic idea of using CUDA to implement Ising model is first to divide the sites into two parts, one part of even index, and another with odd index. Each sites is assigned into a CUDA thread. Then in each iteration, update the even sites, using the updated values to update the odd sites, then synchronize the data in each thread to global variable.  \\
 We use a 2-level thread structure, first divide the entire lattice into blocks, and then each sites in one block in assigned to a single thread. Then we declare a matrix in shared memory for each block for measures will be used in computation. Instead of accessing memory, threads load data into shared memory in parallel, and threads in same block have access to the shared memory assigned to it, access to which is much faster than memory.  
 
@@ -244,8 +244,6 @@ In this project, expect using c programs for computing and parellization,  we al
 \section{\label{sec:level1}Conclusion}
 ---------------------------- TODO ----------------------------
 
-% \bibliographystyle{apsrev4-1}
-% \bibliography{ref}
 \section{APPENDICES}
 \subsection{Description of code}
 In this project, we use C codes and Matlab codes, the description and usage of each code is listed below.
